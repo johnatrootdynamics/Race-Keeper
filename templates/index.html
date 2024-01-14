@@ -4,27 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Information</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Driver Information</h1>
-    
-    <form method="POST" action="/">
-        <label for="name">Name:</label>
-        <input type="text" name="name" required><br>
+    <div class="container">
+        <h1>Driver Information</h1>
+        
+        <form method="POST" action="/">
+            <label for="name">Name:</label>
+            <input type="text" name="name" required>
 
-        <label for="car">Car:</label>
-        <input type="text" name="car" required><br>
+            <label for="car">Car:</label>
+            <input type="text" name="car" required>
 
-        <label for="class">Class:</label>
-        <input type="text" name="class" required><br>
+            <label for="class">Class:</label>
+            <input type="text" name="class" required>
 
-        <label for="driver_number">Driver Number:</label>
-        <input type="text" name="driver_number" required><br>
+            <label for="driver_number">Driver Number:</label>
+            <input type="text" name="driver_number" required>
 
-        <label for="car_number">Car Number:</label>
-        <input type="text" name="car_number" required><br>
+            <label for="car_number">Car Number:</label>
+            <input type="text" name="car_number" required>
 
-        <button type="submit">Submit</button>
-    </form>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
 </body>
 </html>
