@@ -3,31 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driver Information</title>
+    <title>List of Cars</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Driver Information</h1>
+        <h1>List of Cars and Drivers</h1>
         
-        <form method="POST" action="/">
-            <label for="name">Name:</label>
-            <input type="text" name="name" required>
-
-            <label for="car">Car:</label>
-            <input type="text" name="car" required>
-
-            <label for="class">Class:</label>
-            <input type="text" name="class" required>
-
-            <label for="driver_number">Driver Number:</label>
-            <input type="text" name="driver_number" required>
-
-            <label for="car_number">Car Number:</label>
-            <input type="text" name="car_number" required>
-
-            <button type="submit">Submit</button>
-        </form>
+        <ul>
+            {% for car, driver in data %}
+                <li>{{ car }} - {{ driver }}</li>
+            {% endfor %}
+        </ul>
     </div>
+    <a href="{{ url_for('cars') }}" class="cars-button">View Cars</a>
 </body>
 </html>
