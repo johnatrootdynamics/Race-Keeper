@@ -33,5 +33,15 @@ def index():
 
     return render_template('index.html')
 
+@app.route('/cars', methods=['GET'])
+def cars():
+    # Retrieve data from MySQL database
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT car, name FROM driver_info")
+    data = cur.fetchall()
+    cur.close()
+
+    return render_template('cars.html', data=data)
+
 if __name__ == '__main__':
     app.run(debug=True)
