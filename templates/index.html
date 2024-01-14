@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,14 +9,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>List of Cars and Drivers</h1>
-        
+        <h1>List of Cars</h1>
+
         <ul>
-            {% for car, driver in data %}
-                <li>{{ car }} - {{ driver }}</li>
+            {% for driver in data %}
+                <li>
+                  <a href="{{ url_for('driver', driver_name=driver['id']) }}">
+                     {{ driver['name'] }} - {{ driver['car'] }}
+                    </a>
+                </li>
             {% endfor %}
         </ul>
     </div>
-    <a href="{{ url_for('cars') }}" class="cars-button">View Cars</a>
 </body>
 </html>

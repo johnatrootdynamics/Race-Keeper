@@ -12,6 +12,18 @@ mysql = MySQL(app)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+
+    # Retrieve data from MySQL database
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id, name, car, class FROM driver_info")
+    data = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
+    cur.close()
+
+    return render_template('index.html', data=data)
+
+@app.route('/cars', methods=['GET'])
+
+def cars():
     if request.method == 'POST':
         # Get data from the form
         name = request.form['name']
@@ -30,17 +42,18 @@ def index():
         # Redirect back to the home page
         return redirect(url_for('index'))
 
-    return render_template('index.html')
+    return render_template('cars.html')
 
-@app.route('/cars', methods=['GET'])
-def cars():
-    # Retrieve data from MySQL database
+# New route for individual driver pages
+@app.route('/driver/<string:driver_id>', methods=['GET'])
+def driver(driver_id):
+    # Retrieve data for the specified driver from MySQL database
     cur = mysql.connection.cursor()
-    cur.execute("SELECT car, name FROM driver_info")
-    data = cur.fetchall()
+    cur.execute("SELECT * FROM driver_info WHERE id = %s", (driver_id,))
+    driver_data = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
     cur.close()
 
-    return render_template('cars.html', data=data)
+    return render_template('driver.html', driver_data=driver_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
