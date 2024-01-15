@@ -1,25 +1,27 @@
+<!-- templates/index.html -->
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List of Cars</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Race Car Tracking</title>
 </head>
 <body>
     <div class="container">
-        <h1>List of Cars</h1>
-
+        <h1>Driver List</h1>
         <ul>
-            {% for driver in data %}
-                <li>
-                  <a href="{{ url_for('driver', driver_name=driver['id']) }}">
-                     {{ driver['name'] }} - {{ driver['car'] }}
-                    </a>
-                </li>
+            {% for driver in drivers %}
+                <li><a href="{{ url_for('driver_profile', driver_id=driver.id) }}">{{ driver.first_name }} {{ driver.last_name }}</a></li>
             {% endfor %}
         </ul>
+
+        <div>
+            <a href="{{ url_for('add_driver') }}"><button>Add Driver</button></a>
+            <!-- Add other buttons for navigation -->
+        </div>
     </div>
 </body>
 </html>

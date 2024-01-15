@@ -1,0 +1,26 @@
+<!-- templates/driver_profile.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Driver Profile</title>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ driver.first_name }} {{ driver.last_name }}</h1>
+        <p>Date of Birth: {{ driver.date_of_birth }}</p>
+        <!-- Add other driver details -->
+
+        <h2>Associated Cars</h2>
+        <ul>
+            {% for car in cars %}
+                <li>{{ car.make }} {{ car.model }} ({{ car.year }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

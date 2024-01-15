@@ -3,20 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ driver_data[0]['name'] }}'s Information</title>
+    <title>{% if found %}{{ driver_data[0]['name'] }}{% else %}Driver not found{% endif %}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>{{ driver_data[0]['name'] }}'s Information</h1>
+        {% if found %}
+            <h1>{{ driver_data[0]['name'] }}'s Information</h1>
 
-        <ul>
-            <li><strong>Name:</strong> {{ driver_data[0]['name'] }}</li>
-            <li><strong>Car:</strong> {{ driver_data[0]['car'] }}</li>
-            <li><strong>Class:</strong> {{ driver_data[0]['class'] }}</li>
-            <li><strong>Driver Number:</strong> {{ driver_data[0]['driver_number'] }}</li>
-            <li><strong>Car Number:</strong> {{ driver_data[0]['car_number'] }}</li>
-        </ul>
+            <ul>
+                <li><strong>Name:</strong> {{ driver_data[0]['name'] }}</li>
+                <li><strong>Car:</strong> {{ driver_data[0]['car'] }}</li>
+                <li><strong>Class:</strong> {{ driver_data[0]['class'] }}</li>
+                <li><strong>Driver Number:</strong> {{ driver_data[0]['driver_number'] }}</li>
+                <li><strong>Car Number:</strong> {{ driver_data[0]['car_number'] }}</li>
+            </ul>
+
+            <a href="{{ url_for('index') }}"><button>Back to Index</button></a>
+        {% else %}
+            <h1>Driver not found</h1>
+            <a href="{{ url_for('index') }}"><button>Back to Index</button></a>
+        {% endif %}
     </div>
 </body>
 </html>

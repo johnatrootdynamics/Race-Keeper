@@ -1,0 +1,41 @@
+<!-- templates/add_car.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Add Car</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Car</h1>
+        <form method="POST" action="{{ url_for('add_car', driver_id=driver_id) }}" enctype="multipart/form-data">
+            <label for="make">Make:</label>
+            <input type="text" name="make" required>
+
+            <label for="model">Model:</label>
+            <input type="text" name="model" required>
+
+            <label for="year">Year:</label>
+            <input type="number" name="year" required>
+
+            <label for="inspection_passed">Inspection Passed:</label>
+            <select name="inspection_passed" required>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+
+            <label for="inspection_date">Inspection Date:</label>
+            <input type="date" name="inspection_date">
+
+            <label for="picture">Upload Picture:</label>
+            <input type="file" name="picture">
+
+            <button type="submit">Add Car</button>
+        </form>
+    </div>
+</body>
+</html>
