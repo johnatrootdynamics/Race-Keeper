@@ -10,18 +10,28 @@
     <title>Race Car Tracking</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Driver List</h1>
-        <ul>
+    <div class="container profile-container">
+        <h1 class="title">Driver List</h1>
+        <ul class="drivers-list">
             {% for driver in drivers %}
-                <li><a href="{{ url_for('driver_profile', driver_id=driver.id) }}">{{ driver.first_name }} {{ driver.last_name }}</a></li>
+                <li class="driver-item"><a href="{{ url_for('driver_profile', driver_id=driver.id) }}">{{ driver.first_name }} {{ driver.last_name }}</a></li>
             {% endfor %}
         </ul>
 
-        <div>
-            <a href="{{ url_for('add_driver') }}"><button>Add Driver</button></a>
+        <div class="button-container">
+            <a href="{{ url_for('add_driver') }}"><button class="add-driver-button">Add Driver</button></a>
+            <a href="{{ url_for('check_in') }}"><button>Check In</button></a>
             <!-- Add other buttons for navigation -->
         </div>
     </div>
+
+    <div class="footer">
+        <p>© 2024 Your Web App. All rights reserved.</p>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

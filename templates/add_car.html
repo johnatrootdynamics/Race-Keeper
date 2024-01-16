@@ -10,9 +10,9 @@
     <title>Add Car</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Add Car</h1>
-        <form method="POST" action="{{ url_for('add_car', driver_id=driver_id) }}" enctype="multipart/form-data">
+    <div class="container profile-container">
+        <h1 class="title">Add Car</h1>
+        <form class="add-car-form" method="POST" action="{{ url_for('add_car', driver_id=driver_id) }}" enctype="multipart/form-data">
             <label for="make">Make:</label>
             <input type="text" name="make" required>
 
@@ -34,8 +34,9 @@
             <label for="picture">Upload Picture:</label>
             <input type="file" name="picture">
 
-            <button type="submit">Add Car</button>
+            <button type="submit" class="add-car-button">Add Car</button>
         </form>
+        <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
     </div>
 </body>
 </html>

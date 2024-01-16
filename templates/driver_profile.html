@@ -10,17 +10,62 @@
     <title>Driver Profile</title>
 </head>
 <body>
-    <div class="container">
-        <h1>{{ driver.first_name }} {{ driver.last_name }}</h1>
-        <p>Date of Birth: {{ driver.date_of_birth }}</p>
-        <!-- Add other driver details -->
+    <div class="container profile-container">
+        <div class="profile-header">
+            <div class="driver-name-box">
+                <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
+            </div>
+            {% if driver[0].picture_path %}
+                <img class="driver-picture" src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture">
+            {% else %}
+                <p class="no-picture">No picture available</p>
+            {% endif %}
+        </div>
+        <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
+            {% if checkedin[0] %}
+                <p style="color: green;">Checked in {{ checkedin[0].check_in_time }}</p>
+            {% else %}
+                <p style="color: red;">Not checked in</p>
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <p><strong>Date of Birth:</strong> {{ driver[0].date_of_birth }}</p>
+            <p><strong>Address:</strong> {{ driver[0].address }}</p>
+            <p><strong>Phone Number:</strong> {{ driver[0].phone_number }}</p>
+        </div>
+        <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Driver QR Code">
 
-        <h2>Associated Cars</h2>
+        <h2>Notes</h2>
         <ul>
-            {% for car in cars %}
-                <li>{{ car.make }} {{ car.model }} ({{ car.year }})</li>
+            {% for note in notes %}
+                <li>{{ note.note_text }}</li>
+                <small>{{ note.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
             {% endfor %}
         </ul>
+    
+        <form method="POST" action="{{ url_for('driver_profile', driver_id=driver[0].id) }}">
+            <label for="note_text">Add Note:</label>
+            <textarea name="note_text" rows="4" cols="50"></textarea>
+            <button type="submit">Add Note</button>
+        </form>
+
+        <h2 class="section-title">Associated Cars</h2>
+        <ul>
+            {% for car in cars %}
+                <li>
+                    <a href="{{ url_for('car_info', car_id=car.id) }}">
+                        {{ car.make }} {{ car.model }} ({{ car.year }})
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="button-container">
+            <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
+            <a href="{{ url_for('add_car', driver_id=driver[0].id) }}"><button class="add-car-button">Add Car</button></a>
+            <form method="POST" action="{{ url_for('delete_driver', driver_id=driver[0].id) }}" onsubmit="return confirm('Are you sure you want to delete this driver?');">
+                <button type="submit" class="delete-driver-button">Delete Driver</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>

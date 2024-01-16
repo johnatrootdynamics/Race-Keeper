@@ -1,0 +1,30 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Check-In</title>
+</head>
+<body>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+    <div class="container">
+        <h1>Driver Check-In</h1>
+        <form method="POST" action="{{ url_for('check_in') }}">
+            <label for="driver_id">Driver ID:</label>
+            <input type="text" name="driver_id" required>
+            <button type="submit">Check-In</button>
+        </form>
+        <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
+    </div>
+</body>
+</html>
