@@ -10,21 +10,31 @@
     <title>Check-In</title>
 </head>
 <body>
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-    <div class="container">
-        <h1>Driver Check-In</h1>
+    <div class="container check-in-container">
+        <h1>Check-In</h1>
         <form method="POST" action="{{ url_for('check_in') }}">
             <label for="driver_id">Driver ID:</label>
             <input type="text" name="driver_id" required>
+
+            {% for event in events %}
+                <label>
+                    <input type="radio" name="event_id" value="{{ event.id }}" required>
+                    {{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}
+                </label>
+            {% endfor %}
+
             <button type="submit">Check-In</button>
         </form>
         <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
+        {% if messages %}
+            <div class="messages">
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>

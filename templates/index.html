@@ -12,15 +12,32 @@
 <body>
     <div class="container profile-container">
         <h1 class="title">Driver List</h1>
-        <ul class="drivers-list">
-            {% for driver in drivers %}
-                <li class="driver-item"><a href="{{ url_for('driver_profile', driver_id=driver.id) }}">{{ driver.first_name }} {{ driver.last_name }}</a></li>
-            {% endfor %}
-        </ul>
+        <table id="driversTable">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for driver in drivers %}
+                    <tr>
+                        <td>{{ driver.first_name }}</td>
+                        <td>{{ driver.last_name }}</td>
+                        <td><a href="{{ url_for('driver_profile', driver_id=driver.id) }}">View Profile</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
         <div class="button-container">
             <a href="{{ url_for('add_driver') }}"><button class="add-driver-button">Add Driver</button></a>
             <a href="{{ url_for('check_in') }}"><button>Check In</button></a>
+            <a href="{{ url_for('create_event') }}"><button class="create-event-button">Create Event</button></a>
+            <a href="{{ url_for('event_check_ins') }}">
+                <button class="event-check-ins-button">Event Check-Ins</button>
+            </a>
             <!-- Add other buttons for navigation -->
         </div>
     </div>
@@ -33,5 +50,16 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- DataTables JS and CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#driversTable').DataTable();
+        });
+    </script>
 </body>
 </html>

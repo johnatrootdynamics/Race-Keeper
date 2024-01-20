@@ -23,9 +23,9 @@
         </div>
         <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
             {% if checkedin[0] %}
-                <p style="color: green;">Checked in {{ checkedin[0].check_in_time }}</p>
+                <p class="check-status">Checked in at {{ checkedin[0].check_in_time }}</p>
             {% else %}
-                <p style="color: red;">Not checked in</p>
+                <p class="check-status">Not checked in</p>
             {% endif %}
         </div>
         <div class="profile-info">
@@ -36,26 +36,29 @@
         <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Driver QR Code">
 
         <h2>Notes</h2>
-        <ul>
+        <ul class="notes-list">
             {% for note in notes %}
-                <li>{{ note.note_text }}</li>
-                <small>{{ note.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                <li class="note-item">
+                    {{ note.note_text }}
+                    <small class="note-date">{{ note.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                </li>
             {% endfor %}
         </ul>
     
         <form method="POST" action="{{ url_for('driver_profile', driver_id=driver[0].id) }}">
             <label for="note_text">Add Note:</label>
             <textarea name="note_text" rows="4" cols="50"></textarea>
-            <button type="submit">Add Note</button>
+            <button type="submit" class="add-note-button">Add Note</button>
         </form>
 
         <h2 class="section-title">Associated Cars</h2>
-        <ul>
+        <ul class="cars-list">
             {% for car in cars %}
-                <li>
-                    <a href="{{ url_for('car_info', car_id=car.id) }}">
-                        {{ car.make }} {{ car.model }} ({{ car.year }})
-                    </a>
+                <li class="car-item">
+                    <div class="car-circle">
+                        <img src="{{ url_for('get_picture', filename=cars[1].picture_path) }}" alt="Car Picture" class="car-picture">
+                        <p>{{ car.make }} {{ car.model }} ({{ car.year }}) </p>
+                    </div>
                 </li>
             {% endfor %}
         </ul>

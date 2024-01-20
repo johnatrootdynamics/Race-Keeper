@@ -5,7 +5,8 @@ from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
 import os
 from MySQLdb.cursors import DictCursor
-import qrcode
+import qrcode 
+from datetime import datetime
 app = Flask(__name__)
 
 # Configure MySQL
@@ -38,6 +39,15 @@ def generate_qr_code(data, filename):
 
     img = qr.make_image(fill_color="black", back_color="white")
     img.save(filename)
+
+def get_events_for_today():
+    today = datetime.now().date()
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM events WHERE DATE(event_date) = %s", (today,))
+    events = cur.fetchall()
+    cur.close()
+    return events
+
 
 
 def allowed_file(filename):
@@ -93,40 +103,73 @@ def driver_profile(driver_id):
 
     return render_template('driver_profile.html', driver=driver, cars=cars, notes=notes, checkedin=checkedin)
 
+
 @app.route('/check_in', methods=['GET', 'POST'])
 def check_in():
+    events = get_events_for_today()
     messages = []
+
     if request.method == 'POST':
         driver_id = request.form.get('driver_id')
+        event_id = request.form.get('event_id')
 
         if driver_id:
             # Check if the car has already checked in for today
             cur = mysql.connection.cursor()
-            cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id,))
+            cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id, event_id,))
             last_check_in = cur.fetchone()
+
             # Check if the driver exists
-            cur = mysql.connection.cursor()
             cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
             existing_driver = cur.fetchone()
 
             if not existing_driver:
                 messages.append("Driver doesn't exist.")
-            
+
             if last_check_in and last_check_in['checked_in']:
                 messages.append("Car already checked in for today.")
 
             if not messages:
-                cur.execute("INSERT INTO check_ins (driver_id, checked_in) VALUES (%s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id,))
+                cur.execute("INSERT INTO check_ins (driver_id, event_id, checked_in) VALUES (%s, %s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id, event_id,))
                 mysql.connection.commit()
                 cur.close()
-            # Perform the check-in
-            #cur.execute("INSERT INTO check_ins (driver_id, checked_in) VALUES (%s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id,))
-            #mysql.connection.commit()
-            #cur.close()
-
                 return redirect(url_for('index'))
 
-    return render_template('check_in.html', messages=messages)
+    return render_template('check_in.html', messages=messages, events=events)
+# def check_in():
+#     events = get_events_for_today()
+#     messages = []
+#     if request.method == 'POST':
+#         driver_id = request.form.get('driver_id')
+
+#         if driver_id:
+#             # Check if the car has already checked in for today
+#             cur = mysql.connection.cursor()
+#             cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id,))
+#             last_check_in = cur.fetchone()
+#             # Check if the driver exists
+#             cur = mysql.connection.cursor()
+#             cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
+#             existing_driver = cur.fetchone()
+
+#             if not existing_driver:
+#                 messages.append("Driver doesn't exist.")
+            
+#             if last_check_in and last_check_in['checked_in']:
+#                 messages.append("Car already checked in for today.")
+
+#             if not messages:
+#                 cur.execute("INSERT INTO check_ins (driver_id, checked_in) VALUES (%s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id,))
+#                 mysql.connection.commit()
+#                 cur.close()
+#             # Perform the check-in
+#             #cur.execute("INSERT INTO check_ins (driver_id, checked_in) VALUES (%s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id,))
+#             #mysql.connection.commit()
+#             #cur.close()
+            
+#                 return redirect(url_for('index'))
+
+#     return render_template('check_in.html', messages=messages, events=events)
 
 
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
@@ -269,6 +312,72 @@ def delete_car(car_id,driver_id):
     cur.close()
     return redirect(url_for('driver_profile',driver_id=driver_id))
     #return redirect(url_for('index'))
+
+@app.route('/create_event', methods=['GET', 'POST'])
+def create_event():
+    if request.method == 'POST':
+        event_name = request.form['event_name']
+        event_date = request.form['event_date']
+
+        # Insert data into the 'events' table
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO events (event_name, event_date) VALUES (%s, %s)",
+                    (event_name, event_date))
+        mysql.connection.commit()
+        cur.close()
+
+        return redirect(url_for('index'))  # Redirect to the homepage or any other page
+
+    return render_template('create_event.html')
+
+
+
+
+@app.route('/events')
+def events():
+    today = datetime.now().date()
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM events WHERE event_date = %s", (today,))
+    events = cur.fetchall()
+    cur.close()
+    return render_template('events.html', events=events)
+
+
+
+@app.route('/event_check_ins', methods=['GET', 'POST'])
+def event_check_ins():
+    # Fetch all events for the dropdown
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id, event_name FROM events")
+    events = cur.fetchall()
+    cur.close()
+
+    selected_event_id = None
+
+    if request.method == 'POST':
+        selected_event_id = int(request.form.get('event_id'))
+
+    # Fetch check-ins for the selected event
+    if selected_event_id:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT drivers.id, drivers.first_name, drivers.last_name, check_ins.check_in_time, cars.inspection_passed
+            FROM drivers
+            LEFT JOIN check_ins ON drivers.id = check_ins.driver_id
+            LEFT JOIN cars ON drivers.id = cars.driver_id
+            WHERE check_ins.event_id = %s
+            ORDER BY check_ins.check_in_time ASC
+        """, (selected_event_id,))
+        check_ins = cur.fetchall()
+        cur.close()
+
+        return render_template('event_check_ins.html', check_ins=check_ins, events=events, selected_event_id=selected_event_id)
+
+    return render_template('event_check_ins.html', events=events, selected_event_id=selected_event_id)
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
