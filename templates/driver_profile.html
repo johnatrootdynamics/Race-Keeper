@@ -35,7 +35,12 @@
             <p><strong>Address:</strong> {{ driver[0].address }}</p>
             <p><strong>Phone Number:</strong> {{ driver[0].phone_number }}</p>
         </div>
-        <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Driver QR Code">
+        <div class="top-left">
+            <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
+        </div>
+        <div class="top-right">
+            <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Driver QR Code">
+        </div>
 
         <h2>Notes</h2>
         <ul class="notes-list">
