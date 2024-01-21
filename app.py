@@ -27,6 +27,13 @@ def get_driver_data(driver_id):
     cur.close()
     return driver_data
 
+def get_car_data(car_id):
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute("SELECT * FROM cars WHERE id = %s", (car_id,))
+    car_data = cur.fetchone()
+    cur.close()
+    return car_data
+
 def generate_qr_code(data, filename):
     qr = qrcode.QRCode(
         version=1,
@@ -39,6 +46,8 @@ def generate_qr_code(data, filename):
 
     img = qr.make_image(fill_color="black", back_color="white")
     img.save(filename)
+
+
 
 def get_events_for_today():
     today = datetime.now().date()
@@ -74,7 +83,17 @@ def driver_qr_code(driver_id):
 
     return send_file(filename, mimetype='image/png')
 
+@app.route('/car_qr/<int:car_id>')
+def car_qr_code(car_id):
+    # Assuming you have a function to get the driver's data
+    car_data = get_car_data(car_id)
 
+    # Generate QR code
+    qr_data = f"Driver: {car_data['driver_id']}, Make: {car_data['make']}, Model: {car_data['model']}, ID: {car_data['id']}"
+    filename = f"static/qrcodes/car_{car_id}.png"
+    generate_qr_code(qr_data, filename)
+
+    return send_file(filename, mimetype='image/png')
 
 @app.route('/driver/<int:driver_id>', methods=['GET', 'POST'])
 def driver_profile(driver_id):
@@ -136,41 +155,6 @@ def check_in():
                 return redirect(url_for('index'))
 
     return render_template('check_in.html', messages=messages, events=events)
-# def check_in():
-#     events = get_events_for_today()
-#     messages = []
-#     if request.method == 'POST':
-#         driver_id = request.form.get('driver_id')
-
-#         if driver_id:
-#             # Check if the car has already checked in for today
-#             cur = mysql.connection.cursor()
-#             cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id,))
-#             last_check_in = cur.fetchone()
-#             # Check if the driver exists
-#             cur = mysql.connection.cursor()
-#             cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
-#             existing_driver = cur.fetchone()
-
-#             if not existing_driver:
-#                 messages.append("Driver doesn't exist.")
-            
-#             if last_check_in and last_check_in['checked_in']:
-#                 messages.append("Car already checked in for today.")
-
-#             if not messages:
-#                 cur.execute("INSERT INTO check_ins (driver_id, checked_in) VALUES (%s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id,))
-#                 mysql.connection.commit()
-#                 cur.close()
-#             # Perform the check-in
-#             #cur.execute("INSERT INTO check_ins (driver_id, checked_in) VALUES (%s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id,))
-#             #mysql.connection.commit()
-#             #cur.close()
-            
-#                 return redirect(url_for('index'))
-
-#     return render_template('check_in.html', messages=messages, events=events)
-
 
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
 def delete_driver(driver_id):
@@ -215,7 +199,7 @@ def car_info(car_id):
         return "Car not found"
 
 
-@app.route('/static/uploads/<filename>', methods=['POST'])
+@app.route('/<filename>', methods=['POST'])
 def get_picture():
     return 'upload/'
 
@@ -246,13 +230,14 @@ def add_driver():
         date_of_birth = request.form['date_of_birth']
         address = request.form['address']
         phone_number = request.form['phone_number']
+        dclass = request.form['dclass']
 
         # Handle file upload (picture)
         if 'picture' in request.files:
             picture = request.files['picture']
             if picture.filename != '':
-                #picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
-                picture_path = secure_filename(picture.filename)
+                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
+                #picture_path = secure_filename(picture.filename)
                 picture.save(picture_path)
             else:
                 picture_path = None
@@ -261,8 +246,8 @@ def add_driver():
 
         # Insert data into the 'drivers' table
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (first_name, last_name, date_of_birth, address, phone_number, picture_path))
+        cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass))
         mysql.connection.commit()
         cur.close()
 
@@ -276,6 +261,7 @@ def add_car(driver_id):
         # Get form data
         make = request.form['make']
         model = request.form['model']
+        year = request.form['year']
         inspection_passed = request.form['inspection_passed']
         inspection_date = request.form['inspection_date']
         # Add other form fields
@@ -283,8 +269,8 @@ def add_car(driver_id):
         if 'picture' in request.files:
             picture = request.files['picture']
             if picture.filename != '':
-                #picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
-                picture_path = secure_filename(picture.filename)
+                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
+                #picture_path = secure_filename(picture.filename)
                 picture.save(picture_path)
             else:
                 picture_path = None
@@ -294,7 +280,7 @@ def add_car(driver_id):
         
         # Insert data into database
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO cars (make, model, inspection_passed, inspection_date, picture_path, driver_id) VALUES (%s, %s, %s, %s, %s, %s)", (make, model, inspection_passed, inspection_date, picture_path, driver_id))
+        cur.execute("INSERT INTO cars (make, model, year, inspection_passed, inspection_date, picture_path, driver_id) VALUES (%s, %s, %s, %s, %s, %s)", (make, model, inspection_passed, inspection_date, picture_path, driver_id))
         mysql.connection.commit()
         cur.close()
 

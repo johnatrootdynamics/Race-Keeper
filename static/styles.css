@@ -1,5 +1,12 @@
 /* driver_profile.html */
 
+.class-text {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 24px; /* Adjust the font size as needed */
+    font-weight: bold;
+}
 .cars-list {
     list-style: none;
     padding: 0;
@@ -125,8 +132,10 @@ button {
 }
 
 .driver-picture {
-    margin-left: 20px;
     border-radius: 50%;
+    width: 100px; /* Adjust the size as needed */
+    height: 100px; /* Adjust the size as needed */
+    object-fit: cover;
 }
 
 .no-picture {
@@ -253,4 +262,30 @@ form#eventForm {
     #driversTable, #checkInsTable {
         white-space: nowrap;
     }
+}
+
+ /* car_info.html */
+
+
+ .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px; /* Adjust to match the width of your central content area */
+    margin: 0 auto; /* This centers the header container */
+    padding: 10px;
+}
+
+.car-picture-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Add any additional styling here */
+}
+
+.qr-code-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    /* Add any additional styling here */
 }

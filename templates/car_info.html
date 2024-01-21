@@ -1,5 +1,3 @@
-<!-- templates/car_info.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,10 +8,24 @@
     <title>Car Information</title>
 </head>
 <body>
-    <div class="container profile-container">
+    <div class="main-container"> <!-- This will center the content like the Driver List page -->
+        <div class="profile-header"> <!-- This contains the car picture and QR code -->
+            <div class="car-picture-container">
+                {% if car.picture_path %}
+                    <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
+                {% else %}
+                    <p>No picture available</p>
+                {% endif %}
+            </div>
+        
+            <div class="qr-code-container">
+                <img src="{{ url_for('car_qr_code', car_id=car.id) }}" height="150" width="150" alt="Car QR Code" class="qr-code">
+            </div>
+        </div>
         <h1 class="title">Car Information</h1>
         <div class="car-info">
-            <p><strong>Driver ID:</strong>{{ car.driver_id }}</p>
+            <p><strong>Driver ID:</strong> {{ car.driver_id }}</p>
+            <p><strong>Car ID:</strong> {{ car.id }}</p>
             <p><strong>Make:</strong> {{ car.make }}</p>
             <p><strong>Model:</strong> {{ car.model }}</p>
             <p><strong>Year:</strong> {{ car.year }}</p>
@@ -21,15 +33,11 @@
             {% if car.inspection_passed == 'Yes' %}
                 <p><strong>Inspection Date:</strong> {{ car.inspection_date }}</p>
             {% endif %}
-            {% if car.picture_path %}
-                <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
-            {% else %}
-                <p>No picture available</p>
-            {% endif %}
         </div>
-            <form method="POST" action="{{ url_for('delete_car', car_id=car.id,driver_id=car.driver_id) }}" onsubmit="return confirm('Are you sure you want to delete this driver?');">
-                <button type="submit" class="delete-car-button">Delete Car</button>
-            </form>
-    </div>
+        <form method="POST" action="{{ url_for('delete_car', car_id=car.id,driver_id=car.driver_id) }}" onsubmit="return confirm('Are you sure you want to delete this car?');">
+            <button type="submit" class="delete-car-button">Delete Car</button>
+        </form>
+        <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
+    </div> <!-- main-container -->
 </body>
 </html>

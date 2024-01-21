@@ -15,12 +15,14 @@
             <div class="driver-name-box">
                 <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
             </div>
+            <div class="class-text"><p>{{ driver[0].class }}</p></div>
             {% if driver[0].picture_path %}
                 <img class="driver-picture" src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture">
             {% else %}
                 <p class="no-picture">No picture available</p>
             {% endif %}
         </div>
+        
         <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
             {% if checkedin[0] %}
                 <p class="check-status">Checked in at {{ checkedin[0].check_in_time }}</p>
@@ -55,10 +57,10 @@
         <ul class="cars-list">
             {% for car in cars %}
                 <li class="car-item">
-                    <div class="car-circle">
-                        <img src="{{ url_for('get_picture', filename=cars[0].picture_path) }}" alt="Car Picture" class="car-picture">
-                        <p>{{ car.make }} {{ car.model }} ({{ car.year }}) </p>
-                    </div>
+                    <a href="{{ url_for('car_info', car_id=car.id) }}">
+                        <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
+                        <p>{{ car.make }} {{ car.model }}</p>
+                    </a>
                 </li>
             {% endfor %}
         </ul>

@@ -13,11 +13,15 @@
     <div class="container profile-container">
         <h1 class="title">Add Driver</h1>
         <form class="add-driver-form" method="POST" action="{{ url_for('add_driver') }}" enctype="multipart/form-data">
+            <label for="dclass">Driver Class:</label>
+            <input type="text" name="dclass">
+
             <label for="first_name">First Name:</label>
             <input type="text" name="first_name" required>
 
             <label for="last_name">Last Name:</label>
-            <input type="text" name="last_name" required>
+            <input type="text" name="last_name" required>%%ALLTIM02
+            
 
             <label for="date_of_birth">Date of Birth:</label>
             <input type="date" name="date_of_birth">
