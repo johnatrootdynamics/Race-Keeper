@@ -21,7 +21,7 @@
     text-align: center;
 }
 
-.car-picture {
+.list-car-picture {
     border-radius: 50%;
     width: 80px; /* Adjust the size as needed */
     height: 80px; /* Adjust the size as needed */
@@ -137,6 +137,15 @@ button {
     height: 100px; /* Adjust the size as needed */
     object-fit: cover;
 }
+
+.driver-picture-container img {
+    max-width: 150px; /* Adjust as needed */
+    height: auto;
+    border-radius: 10%; /* Keep it circular */
+}
+
+
+
 
 .no-picture {
     color: #777;
@@ -267,25 +276,29 @@ form#eventForm {
  /* car_info.html */
 
 
- .header-container {
+ .main-container {
+    max-width: 800px; /* Match this width with the width of your 'Driver List' container */
+    margin: auto; /* Center the main container */
+    padding: 20px; /* Add padding as needed */
+}
+
+/* Header container within the main container */
+.profile-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 800px; /* Adjust to match the width of your central content area */
-    margin: 0 auto; /* This centers the header container */
-    padding: 10px;
+    justify-content: space-between; /* Space out the car picture and QR code */
+    align-items: flex-start; /* Align items to the top */
+    padding: 10px 0; /* Top and bottom padding for spacing */
 }
 
-.car-picture-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    /* Add any additional styling here */
+/* Style adjustments for car picture */
+.car-picture-container img {
+    max-width: 150px; /* Adjust as needed */
+    height: auto;
+    border-radius: 10%; /* Keep it circular */
 }
 
-.qr-code-container {
-    position: absolute;
-    top: 0;
-    right: 0;
-    /* Add any additional styling here */
+/* Style adjustments for QR code */
+.qr-code-container img {
+    width: 150px; /* Width of QR code */
+    height: auto; /* Maintain aspect ratio */
 }

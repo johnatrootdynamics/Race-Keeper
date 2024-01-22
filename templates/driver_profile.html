@@ -12,15 +12,22 @@
 <body>
     <div class="container profile-container">
         <div class="profile-header">
+            <div class="driver-picture-container"></div>
+                {% if driver[0].picture_path %}
+                    <img class="driver-picture" src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture">
+                {% else %}
+                    <p class="no-picture">No picture available</p>
+                {% endif %}
+            </div>
+            <div class="qr-code-container">
+                <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Car QR Code" class="qr-code">
+            </div>
             <div class="driver-name-box">
                 <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
             </div>
-            <div class="class-text"><p>{{ driver[0].class }}</p></div>
-            {% if driver[0].picture_path %}
-                <img class="driver-picture" src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture">
-            {% else %}
-                <p class="no-picture">No picture available</p>
-            {% endif %}
+            <div class="class-text">
+                <p>{{ driver[0].class }}</p>
+            </div>
         </div>
         
         <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
@@ -34,12 +41,6 @@
             <p><strong>Date of Birth:</strong> {{ driver[0].date_of_birth }}</p>
             <p><strong>Address:</strong> {{ driver[0].address }}</p>
             <p><strong>Phone Number:</strong> {{ driver[0].phone_number }}</p>
-        </div>
-        <div class="top-left">
-            <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
-        </div>
-        <div class="top-right">
-            <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Driver QR Code">
         </div>
 
         <h2>Notes</h2>
@@ -63,7 +64,7 @@
             {% for car in cars %}
                 <li class="car-item">
                     <a href="{{ url_for('car_info', car_id=car.id) }}">
-                        <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
+                        <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="list-car-picture">
                         <p>{{ car.make }} {{ car.model }}</p>
                     </a>
                 </li>
