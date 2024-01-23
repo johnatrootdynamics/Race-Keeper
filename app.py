@@ -152,7 +152,8 @@ def check_in():
                 cur.execute("INSERT INTO check_ins (driver_id, event_id, checked_in) VALUES (%s, %s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id, event_id,))
                 mysql.connection.commit()
                 cur.close()
-                return redirect(url_for('index'))
+                messages.append("Driver Check in Sucessful.")
+                #return redirect(url_for('check_in'))
 
     return render_template('check_in.html', messages=messages, events=events)
 

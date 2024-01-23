@@ -9,39 +9,47 @@
     <title>Check-In</title>
 </head>
 <body>
-    <div class="container check-in-container">
-        <h1>Check-In</h1>
-        <form method="POST" action="{{ url_for('check_in') }}" id="checkInForm">
-            <div class="input-container">
-                <label for="driver_id">Driver ID:</label>
-                <input type="text" name="driver_id" id="driver_id" class="driver-id-input" required>
-                <button type="button" id="scanQRButton">Scan QR Code</button>
+    <div class="main-container">
+        <div class="container check-in-container">
+            <h1>Check-In</h1>
+            {% if messages %}
+            {% for message in messages %}
+            {% if message == "Driver Check in Sucessful." %}
+            <div class="successmessages">
+                <ul>
+                    <li>{{ message }}</li>
+                </ul>
             </div>
-            <div style="width: 500px" id="qr-reader"></div>
-            <div id="qr-reader-results"></div>
-            
-            {% for event in events %}
-                <label>
-                    <input type="radio" name="event_id" value="{{ event.id }}" required>
-                    {{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}
-                </label>
-            {% endfor %}
-            
-            <button type="submit">Check-In</button>
-        </form>
-    </br></br>
-        <a href="{{ url_for('index') }}" class="back-button">Back to Home</a>
-        {% if messages %}
+            {% else %}
             <div class="messages">
                 <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
+                    <li>{{ message }}</li>
                 </ul>
             </div>
         {% endif %}
+        {% endfor %}
+        {% endif %}
+            <form method="POST" action="{{ url_for('check_in') }}" id="checkInForm">
+                <div class="input-container">
+                    <label for="driver_id">Driver ID:</label>
+                    <input type="text" name="driver_id" id="driver_id" class="driver-id-input" required>
+                    <button type="button" id="scanQRButton">Scan QR Code</button>
+                </div>
+                <div style="width: 500px" id="qr-reader"></div>
+                <div id="qr-reader-results"></div>
+                
+                {% for event in events %}
+                    <label>
+                        <input type="radio" name="event_id" value="{{ event.id }}" required>
+                        {{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}
+                    </label>
+                {% endfor %}
+                
+                <button type="submit">Check-In</button>
+            </form>
+        </br></br>
+            <a href="{{ url_for('index') }}" class="back-button">Back to Home</a>
     </div>
-
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -49,6 +57,8 @@
             const driverIdInput = document.getElementById("driver_id");
             const qrReader = new Html5Qrcode("qr-reader");
             const qrResultContainer = document.getElementById("qr-reader-results");
+            const messagesContainer = document.getElementById("messages-container");
+            const successMessage = document.getElementById("success-message"); // Added this line
 
             scanQRButton.addEventListener("click", () => {
                 qrReader.start(

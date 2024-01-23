@@ -250,6 +250,20 @@ form#eventForm {
     padding: 0;
 }
 
+
+li.success {
+    color: white; /* Set text color to white */
+    background-color: green; /* Set background color to green */
+    /* Add any other styles you want for success messages */
+}
+.successmessages li {
+    color: #ffffff;
+    background-color: #08e11a;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
 .messages li {
     color: #721c24;
     background-color: #f8d7da;
@@ -257,7 +271,6 @@ form#eventForm {
     margin-bottom: 10px;
     border-radius: 4px;
 }
-
 /* Media Queries */
 @media screen and (max-width: 600px) {
     .button-container {
@@ -333,3 +346,4 @@ label {
 #scanQRButton {
     margin-left: auto; /* Push the button to the right */
 }
+
