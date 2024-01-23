@@ -1,11 +1,10 @@
 /* driver_profile.html */
 
 .class-text {
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-size: 24px; /* Adjust the font size as needed */
+    /*position: fixed; */
+    font-size: 100px; /* Adjust the font size as needed */
     font-weight: bold;
+    margin: 10px;
 }
 .cars-list {
     list-style: none;
@@ -126,7 +125,12 @@ button {
     justify-content: center;
     margin-bottom: 20px;
 }
-
+.class-text-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
 .driver-name {
     margin: 0;
 }
@@ -301,4 +305,31 @@ form#eventForm {
 .qr-code-container img {
     width: 150px; /* Width of QR code */
     height: auto; /* Maintain aspect ratio */
+}
+
+
+.input-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align items to the left */
+    margin-bottom: 16px; /* Adjust as needed */
+}
+
+label {
+    margin-right: 10px; /* Add spacing between label and input */
+}
+.back-button {
+    margin-top: 10px; /* Add margin to the top of the button */
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.driver-id-input {
+    padding: 8px;
+    margin-bottom: 0;
+}
+
+#scanQRButton {
+    margin-left: auto; /* Push the button to the right */
 }

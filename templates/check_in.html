@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,25 +5,32 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/html5-qrcode">
     <title>Check-In</title>
 </head>
 <body>
     <div class="container check-in-container">
         <h1>Check-In</h1>
-        <form method="POST" action="{{ url_for('check_in') }}">
-            <label for="driver_id">Driver ID:</label>
-            <input type="text" name="driver_id" required>
-
+        <form method="POST" action="{{ url_for('check_in') }}" id="checkInForm">
+            <div class="input-container">
+                <label for="driver_id">Driver ID:</label>
+                <input type="text" name="driver_id" id="driver_id" class="driver-id-input" required>
+                <button type="button" id="scanQRButton">Scan QR Code</button>
+            </div>
+            <div style="width: 500px" id="qr-reader"></div>
+            <div id="qr-reader-results"></div>
+            
             {% for event in events %}
                 <label>
                     <input type="radio" name="event_id" value="{{ event.id }}" required>
                     {{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}
                 </label>
             {% endfor %}
-
+            
             <button type="submit">Check-In</button>
         </form>
-        <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
+    </br></br>
+        <a href="{{ url_for('index') }}" class="back-button">Back to Home</a>
         {% if messages %}
             <div class="messages">
                 <ul>
@@ -36,5 +41,50 @@
             </div>
         {% endif %}
     </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const scanQRButton = document.getElementById("scanQRButton");
+            const driverIdInput = document.getElementById("driver_id");
+            const qrReader = new Html5Qrcode("qr-reader");
+            const qrResultContainer = document.getElementById("qr-reader-results");
+
+            scanQRButton.addEventListener("click", () => {
+                qrReader.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    (decodedText, decodedResult) => {
+                        console.log(`Scan result: ${decodedText}`, decodedResult);
+                        qrResultContainer.innerHTML = decodedText; // Display the result for debugging
+                        
+                        // Use a regular expression to extract the "Driver-ID:" value
+                        const driverIdMatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
+                        
+                        if (driverIdMatch) {
+                            const driverId = driverIdMatch[1].trim();
+                            
+                            // Set the extracted value as the value of the driver_id input field
+                            driverIdInput.value = driverId;
+                        } else {
+                            // Handle the case where "Driver-ID:" is not found
+                            console.error('Driver-ID not found in QR code.');
+                        }
+                        
+                        qrReader.stop().then(ignore => {
+                            // QR Scanning is stopped.
+                        }).catch(err => {
+                            // Stop failed, handle it.
+                        });
+                    },
+                    (errorMessage) => {
+                        // parse error, ignore it.
+                    })
+                    .catch((err) => {
+                        // Start failed, handle it.
+                    });
+            });
+        });
+    </script>
 </body>
 </html>

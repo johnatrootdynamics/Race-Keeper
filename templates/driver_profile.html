@@ -8,75 +8,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Driver Profile</title>
+    <style>
+        /* Add some CSS styles for the tabs */
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .active-tab {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <div class="container profile-container">
-        <div class="profile-header">
-            <div class="driver-picture-container"></div>
-                {% if driver[0].picture_path %}
-                    <img class="driver-picture" src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture">
+    <div class="main-container"> <!-- This will center the content like the Driver List page -->
+        <div class="tabs">
+            <!-- Create tab buttons -->
+            <button class="tab-button" onclick="showTab('profile')">Profile</button>
+            <button class="tab-button" onclick="showTab('notes')">Notes</button>
+            <button class="tab-button" onclick="showTab('cars')">Associated Cars</button>
+        </div>
+        <!-- Profile Tab -->
+        <div class="tab-content" id="profile-tab">
+            <div class="profile-header">
+                <div class="driver-picture-container">
+                    {% if driver[0].picture_path %}
+                        <img  src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture" class="driver-picture">
+                    {% else %}
+                        <p class="no-picture">No picture available</p>
+                    {% endif %}
+                </div>
+                <div class="driver-name-box">
+                    <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
+                </div>
+                <div class="class-text-box">
+                    <p class="class-text">{{ driver[0].class }}</p>
+                </div>
+                <div class="qr-code-container">
+                    <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Car QR Code" class="qr-code">
+                </div>
+            </div>
+            
+            <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
+                {% if checkedin[0] %}
+                    <p class="check-status">Checked in at {{ checkedin[0].check_in_time }}</p>
                 {% else %}
-                    <p class="no-picture">No picture available</p>
+                    <p class="check-status">Not checked in</p>
                 {% endif %}
             </div>
-            <div class="qr-code-container">
-                <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Car QR Code" class="qr-code">
-            </div>
-            <div class="driver-name-box">
-                <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
-            </div>
-            <div class="class-text">
-                <p>{{ driver[0].class }}</p>
+            <div class="profile-info">
+                <p><strong>Date of Birth:</strong> {{ driver[0].date_of_birth }}</p>
+                <p><strong>Address:</strong> {{ driver[0].address }}</p>
+                <p><strong>Phone Number:</strong> {{ driver[0].phone_number }}</p>
             </div>
         </div>
         
-        <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
-            {% if checkedin[0] %}
-                <p class="check-status">Checked in at {{ checkedin[0].check_in_time }}</p>
-            {% else %}
-                <p class="check-status">Not checked in</p>
-            {% endif %}
-        </div>
-        <div class="profile-info">
-            <p><strong>Date of Birth:</strong> {{ driver[0].date_of_birth }}</p>
-            <p><strong>Address:</strong> {{ driver[0].address }}</p>
-            <p><strong>Phone Number:</strong> {{ driver[0].phone_number }}</p>
+        <!-- Notes Tab -->
+        <div class="tab-content" id="notes-tab">
+            <h2>Notes</h2>
+            <ul class="notes-list">
+                {% for note in notes %}
+                    <li class="note-item">
+                        {{ note.note_text }}
+                        <small class="note-date">{{ note.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        
+            <form method="POST" action="{{ url_for('driver_profile', driver_id=driver[0].id) }}">
+                <label for="note_text">Add Note:</label>
+                <textarea name="note_text" rows="4" cols="50"></textarea>
+                <button type="submit" class="add-note-button">Add Note</button>
+            </form>
         </div>
 
-        <h2>Notes</h2>
-        <ul class="notes-list">
-            {% for note in notes %}
-                <li class="note-item">
-                    {{ note.note_text }}
-                    <small class="note-date">{{ note.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-                </li>
-            {% endfor %}
-        </ul>
-    
-        <form method="POST" action="{{ url_for('driver_profile', driver_id=driver[0].id) }}">
-            <label for="note_text">Add Note:</label>
-            <textarea name="note_text" rows="4" cols="50"></textarea>
-            <button type="submit" class="add-note-button">Add Note</button>
-        </form>
-
-        <h2 class="section-title">Associated Cars</h2>
-        <ul class="cars-list">
-            {% for car in cars %}
-                <li class="car-item">
-                    <a href="{{ url_for('car_info', car_id=car.id) }}">
-                        <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="list-car-picture">
-                        <p>{{ car.make }} {{ car.model }}</p>
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
+        <!-- Associated Cars Tab -->
+        <div class="tab-content" id="cars-tab">
+            <h2 class="section-title">Associated Cars</h2>
+            <ul class="cars-list">
+                {% for car in cars %}
+                    <li class="car-item">
+                        <a href="{{ url_for('car_info', car_id=car.id) }}">
+                            <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="list-car-picture">
+                            <p>{{ car.make }} {{ car.model }}</p>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="{{ url_for('add_car', driver_id=driver[0].id) }}"><button class="add-car-button">Add Car</button></a>
+        </div>
         <div class="button-container">
             <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
-            <a href="{{ url_for('add_car', driver_id=driver[0].id) }}"><button class="add-car-button">Add Car</button></a>
+            
             <form method="POST" action="{{ url_for('delete_driver', driver_id=driver[0].id) }}" onsubmit="return confirm('Are you sure you want to delete this driver?');">
                 <button type="submit" class="delete-driver-button">Delete Driver</button>
             </form>
         </div>
     </div>
+
+    <script>
+        // JavaScript function to show the selected tab content
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.style.display = 'none';
+            });
+
+            document.getElementById(tabName + '-tab').style.display = 'block';
+        }
+
+        // Show the default tab (Profile)
+        showTab('profile');
+    </script>
 </body>
 </html>

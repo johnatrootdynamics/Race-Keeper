@@ -77,7 +77,7 @@ def driver_qr_code(driver_id):
     driver_data = get_driver_data(driver_id)
 
     # Generate QR code
-    qr_data = f"Driver: {driver_data['first_name']} {driver_data['last_name']}, ID: {driver_data['id']}"
+    qr_data = f"Driver-ID: {driver_data['id']}"
     filename = f"static/qrcodes/driver_{driver_id}.png"
     generate_qr_code(qr_data, filename)
 
@@ -89,7 +89,7 @@ def car_qr_code(car_id):
     car_data = get_car_data(car_id)
 
     # Generate QR code
-    qr_data = f"Driver: {car_data['driver_id']}, Make: {car_data['make']}, Model: {car_data['model']}, ID: {car_data['id']}"
+    qr_data = f"Driver: {car_data['driver_id']}, Make: {car_data['make']}, Model: {car_data['model']}, Car-ID: {car_data['id']}"
     filename = f"static/qrcodes/car_{car_id}.png"
     generate_qr_code(qr_data, filename)
 
@@ -366,4 +366,5 @@ def event_check_ins():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    #app.run(debug=True)
+    app.run(debug=True, ssl_context=('server.crt', 'server.key'))
