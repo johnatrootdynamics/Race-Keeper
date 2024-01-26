@@ -347,3 +347,58 @@ label {
     margin-left: auto; /* Push the button to the right */
 }
 
+/* Custom CSS for styling the checkboxes and text */
+.checklist {
+    background-color: #f8f8f8;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.checklist h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.checklist label {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.checklist input[type="checkbox"] {
+    display: none;
+}
+
+.checklist span.checkbox-custom {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.checklist span.checkbox-custom::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background-color: #007BFF;
+    border-radius: 50%;
+    opacity: 0;
+}
+
+.checklist input[type="checkbox"]:checked + span.checkbox-custom::before {
+    opacity: 1;
+}
+
+.checklist label:hover span.checkbox-custom {
+    border-color: #0056b3;
+}

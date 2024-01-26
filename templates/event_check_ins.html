@@ -33,8 +33,6 @@
     <div class="container">
         <h1>Event Check-Ins</h1>
         <div class="checkin-summary">
-            <p>Total Check-Ins: {{ total_check_ins }}</p>
-            <p>Total Passed Inspections: {{ total_passed_inspections }}</p>
         </div>
         <form method="POST" action="{{ url_for('event_check_ins') }}" id="eventForm">
             <label for="event_id">Select Event:</label>
@@ -48,7 +46,9 @@
             </select>
             <button type="submit" id="showCheckInsBtn" disabled>Show Check-Ins</button>
         </form>
+        
         {% if check_ins %}
+        
             <table id="checkInsTable">
                 <thead>
                     <tr>
@@ -62,7 +62,13 @@
                         <tr>
                             <td>{{ check_in.first_name }} {{ check_in.last_name }}</td>
                             <td>{{ check_in.check_in_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                            <td>{{ 'Yes' if check_in.inspection_passed else 'No' }}</td>
+                            <td>
+                                {% if check_in.inspection_status == "Passed" %}
+                                    Yes
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

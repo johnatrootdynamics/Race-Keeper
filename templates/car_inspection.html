@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Car Inspection</title>
+</head>
+<body>
+    <div class="main-container">
+        <div class="container car-inspection-container">
+            <h1>Car Inspection</h1>
+            {% if messages %}
+            <div class="messages">
+                <ul>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('car_inspection') }}" id="carInspectionForm">
+                <div class="input-container">
+                    <label for="car_id">Car ID:</label>
+                    <input type="text" name="car_id" id="car_id" class="car-id-input" required>
+                    <button type="button" id="scanQRButton">Scan QR Code</button>
+                </div>
+                <div style="width: 500px" id="qr-reader"></div>
+                <div id="qr-reader-results"></div>
+                
+                <label for="event_id">Select Event:</label>
+                <select name="event_id" id="event_id" required>
+                    {% for event in events %}
+                        <option value="{{ event.id }}">{{ event.event_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <div class="checkboxes">
+                    <label><input type="checkbox" name="ins_fluid"> No Oil Leaks</label><br>
+                    <label><input type="checkbox" name="ins_helmet"> Helmet</label><br>
+                    <label><input type="checkbox" name="ins_fireext"> Fire Extinguisher</label><br>
+                    <label><input type="checkbox" name="ins_cage"> Battery Tied Down</label><br>
+                    <label><input type="checkbox" name="ins_bat"> Roll Cage</label><br>
+                </div>
+
+                <button type="submit">Inspect Car</button>
+            </form>
+            <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        // JavaScript code for QR code scanning
+        document.addEventListener("DOMContentLoaded", function () {
+            const scanQRButton = document.getElementById("scanQRButton");
+            const carIdInput = document.getElementById("car_id");
+            const qrReader = new Html5Qrcode("qr-reader");
+            const qrResultContainer = document.getElementById("qr-reader-results");
+
+            scanQRButton.addEventListener("click", () => {
+                qrReader.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    (decodedText, decodedResult) => {
+                        console.log(`Scan result: ${decodedText}`, decodedResult);
+                        qrResultContainer.innerHTML = decodedText;
+
+                        // Use a regular expression to extract the "Car-ID:" value
+                        const carIdMatch = decodedText.match(/Car-ID:\s*(\S+)/i);
+
+                        if (carIdMatch) {
+                            const carId = carIdMatch[1].trim();
+                            carIdInput.value = carId;
+                        } else {
+                            console.error('Car-ID not found in QR code.');
+                        }
+
+                        qrReader.stop().then(ignore => {
+                            // QR Scanning is stopped.
+                        }).catch(err => {
+                            // Stop failed, handle it.
+                        });
+                    },
+                    (errorMessage) => {
+                        // Parse error, ignore it.
+                    })
+                    .catch((err) => {
+                        // Start failed, handle it.
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

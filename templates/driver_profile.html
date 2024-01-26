@@ -103,7 +103,11 @@
                 {% for car in cars %}
                     <li class="car-item">
                         <a href="{{ url_for('car_info', car_id=car.id) }}">
+                            {% if driver[0].picture_path %}
                             <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="list-car-picture">
+                            {% else %}
+                            <p>no picture</p>
+                            {% endif %}
                             <p>{{ car.make }} {{ car.model }}</p>
                         </a>
                     </li>

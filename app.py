@@ -263,8 +263,6 @@ def add_car(driver_id):
         make = request.form['make']
         model = request.form['model']
         year = request.form['year']
-        inspection_passed = request.form['inspection_passed']
-        inspection_date = request.form['inspection_date']
         # Add other form fields
         # Handle file upload (picture)
         if 'picture' in request.files:
@@ -281,7 +279,7 @@ def add_car(driver_id):
         
         # Insert data into database
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO cars (make, model, year, inspection_passed, inspection_date, picture_path, driver_id) VALUES (%s, %s, %s, %s, %s, %s)", (make, model, inspection_passed, inspection_date, picture_path, driver_id))
+        cur.execute("INSERT INTO cars (make, model, year, picture_path, driver_id) VALUES (%s, %s, %s, %s, %s)", (make, model, year, picture_path, driver_id))
         mysql.connection.commit()
         cur.close()
 
@@ -340,6 +338,7 @@ def event_check_ins():
     cur.close()
 
     selected_event_id = None
+    messages = []
 
     if request.method == 'POST':
         selected_event_id = int(request.form.get('event_id'))
@@ -348,16 +347,19 @@ def event_check_ins():
     if selected_event_id:
         cur = mysql.connection.cursor()
         cur.execute("""
-            SELECT drivers.id, drivers.first_name, drivers.last_name, check_ins.check_in_time, cars.inspection_passed
+            SELECT drivers.id, drivers.first_name, drivers.last_name, check_ins.check_in_time, cars.id as car_id, car_inspections.inspection_status
             FROM drivers
             LEFT JOIN check_ins ON drivers.id = check_ins.driver_id
             LEFT JOIN cars ON drivers.id = cars.driver_id
+            LEFT JOIN car_inspections ON cars.id = car_inspections.car_id
             WHERE check_ins.event_id = %s
             ORDER BY check_ins.check_in_time ASC
         """, (selected_event_id,))
         check_ins = cur.fetchall()
         cur.close()
 
+        for check_in in check_ins:
+            hello = "hello"
         return render_template('event_check_ins.html', check_ins=check_ins, events=events, selected_event_id=selected_event_id)
 
     return render_template('event_check_ins.html', events=events, selected_event_id=selected_event_id)
@@ -366,6 +368,82 @@ def event_check_ins():
 
 
 
+@app.route('/car_inspection', methods=['GET', 'POST'])
+def car_inspection():
+    messages = []  # Create an empty list to store messages
+
+    if request.method == 'POST':
+        car_id = request.form.get('car_id')
+        event_id = request.form.get('event_id')
+        ins_fluid = request.form.get('ins_fluid')
+        ins_helmet = request.form.get('ins_helmet')
+        ins_fireext = request.form.get('ins_fireext')
+        ins_cage = request.form.get('ins_cage')
+        ins_bat = request.form.get('ins_bat')
+
+        # Validate if the car exists
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT driver_id FROM cars WHERE id = %s", (car_id,))
+        car_data = cur.fetchone()
+        cur.close()
+
+        if car_data:
+            driver_id = car_data['driver_id']
+            # Get driver_class from drivers table
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT class FROM drivers WHERE id = %s", (driver_id,))
+            driver_class = cur.fetchone()
+            cur.close()
+
+            # Check if the driver is checked in for the selected event
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s", (driver_id, event_id,))
+            check_in_data = cur.fetchone()
+            cur.close()
+
+            if check_in_data and check_in_data['checked_in']:
+                # Driver is checked in, proceed with inspection
+
+                # Check if the car has already passed inspection for the specified event
+                cur = mysql.connection.cursor()
+                cur.execute("SELECT inspection_status FROM car_inspections WHERE car_id = %s AND event_id = %s", (car_id, event_id,))
+                inspection_data = cur.fetchone()
+                cur.close()
+
+                if not inspection_data:
+                    # Check if all checkboxes are checked
+                    if ins_fluid and ins_helmet and ins_fireext and ins_cage and ins_bat:
+                        # Car has not been inspected for this event and all checkboxes are checked, proceed with inspection
+                        cur = mysql.connection.cursor()
+                        cur.execute("INSERT INTO car_inspections (car_id, event_id, driver_id, driver_class, inspection_status, inspection_datetime) VALUES (%s, %s, %s, %s, 'Passed', NOW())",
+                                    (car_id, event_id, driver_id, driver_class['class']))
+                        mysql.connection.commit()
+                        cur.close()
+
+                        messages.append("Car inspection passed successfully.")
+                    else:
+                        messages.append("All checkboxes must be checked to pass inspection.")
+                else:
+                    messages.append("Car has already passed inspection for this event.")
+            else:
+                messages.append("Driver is not checked in for the selected event.")
+        else:
+            messages.append("Car not found.")
+
+    # Fetch today's events
+    events = get_events_for_today()
+
+    return render_template('car_inspection.html', events=events, messages=messages)
+
+
+
+
+
+
+
+
+
+    
 if __name__ == '__main__':
     #app.run(debug=True)
     app.run(debug=True, ssl_context=('server.crt', 'server.key'))
