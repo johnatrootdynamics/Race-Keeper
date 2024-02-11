@@ -1,100 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/html5-qrcode">
-    <title>Check-In</title>
+    <!-- Your existing <head> content here -->
 </head>
 <body>
-    <div class="main-container">
-        <div class="container check-in-container">
-            <h1>Check-In</h1>
+    <div class="container">
+        <h1>Driver Check-In</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            {% for message in messages %}
-            {% if message == "Driver Check in Sucessful." %}
-            <div class="successmessages">
-                <ul>
-                    <li>{{ message }}</li>
-                </ul>
-            </div>
-            {% else %}
-            <div class="messages">
-                <ul>
-                    <li>{{ message }}</li>
-                </ul>
-            </div>
-        {% endif %}
-        {% endfor %}
-        {% endif %}
-            <form method="POST" action="{{ url_for('check_in') }}" id="checkInForm">
-                <div class="input-container">
-                    <label for="driver_id">Driver ID:</label>
-                    <input type="text" name="driver_id" id="driver_id" class="driver-id-input" required>
-                    <button type="button" id="scanQRButton">Scan QR Code</button>
-                </div>
-                <div style="width: 500px" id="qr-reader"></div>
-                <div id="qr-reader-results"></div>
-                
-                {% for event in events %}
-                    <label>
-                        <input type="radio" name="event_id" value="{{ event.id }}" required>
-                        {{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}
-                    </label>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
                 {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('check_in') }}" method="post">
+            <label for="driver_id">Driver ID:</label>
+            <input type="text" id="driver_id" name="driver_id" required>
+            <button type="submit">Look Up</button>
+        </form>
+
+        {% if driver_id %}
+            <form action="{{ url_for('final_check_in') }}" method="post">
+                <input type="hidden" name="driver_id" value="{{ driver_id }}">
                 
+                <label for="car_id">Select a Car:</label>
+                <select id="car_id" name="car_id" required>
+                    {% for car in cars %}
+                        <option value="{{ car.id }}">{{ car.make }} {{ car.model }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="event_id">Select an Event:</label>
+                <select id="event_id" name="event_id" required>
+                    {% for event in events %}
+                        <option value="{{ event.id }}">{{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}</option>
+                    {% endfor %}
+                </select>
+
                 <button type="submit">Check-In</button>
             </form>
-        </br></br>
-            <a href="{{ url_for('index') }}" class="back-button">Back to Home</a>
+        {% endif %}
     </div>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const scanQRButton = document.getElementById("scanQRButton");
-            const driverIdInput = document.getElementById("driver_id");
-            const qrReader = new Html5Qrcode("qr-reader");
-            const qrResultContainer = document.getElementById("qr-reader-results");
-            const messagesContainer = document.getElementById("messages-container");
-            const successMessage = document.getElementById("success-message"); // Added this line
-
-            scanQRButton.addEventListener("click", () => {
-                qrReader.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: 250 },
-                    (decodedText, decodedResult) => {
-                        console.log(`Scan result: ${decodedText}`, decodedResult);
-                        qrResultContainer.innerHTML = decodedText; // Display the result for debugging
-                        
-                        // Use a regular expression to extract the "Driver-ID:" value
-                        const driverIdMatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
-                        
-                        if (driverIdMatch) {
-                            const driverId = driverIdMatch[1].trim();
-                            
-                            // Set the extracted value as the value of the driver_id input field
-                            driverIdInput.value = driverId;
-                        } else {
-                            // Handle the case where "Driver-ID:" is not found
-                            console.error('Driver-ID not found in QR code.');
-                        }
-                        
-                        qrReader.stop().then(ignore => {
-                            // QR Scanning is stopped.
-                        }).catch(err => {
-                            // Stop failed, handle it.
-                        });
-                    },
-                    (errorMessage) => {
-                        // parse error, ignore it.
-                    })
-                    .catch((err) => {
-                        // Start failed, handle it.
-                    });
-            });
-        });
-    </script>
 </body>
 </html>

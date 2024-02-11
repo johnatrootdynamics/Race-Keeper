@@ -1,6 +1,6 @@
 # app.py
 
-from flask import Flask, render_template, request, redirect, url_for, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, flash
 from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
 import os
@@ -58,6 +58,12 @@ def get_events_for_today():
     return events
 
 
+def get_car_data_by_driver(driver_id):
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute("SELECT * FROM cars WHERE driver_id = %s", (driver_id,))
+    cars = cur.fetchall()
+    cur.close()
+    return cars
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -122,40 +128,114 @@ def driver_profile(driver_id):
 
     return render_template('driver_profile.html', driver=driver, cars=cars, notes=notes, checkedin=checkedin)
 
+@app.route('/final_check_in', methods=['POST'])
+def final_check_in():
+    driver_id = request.form.get('driver_id')
+    car_id = request.form.get('car_id')
+    event_id = request.form.get('event_id')
+
+    if driver_id and car_id and event_id:
+         # Check if the car has already checked in for today
+         cur = mysql.connection.cursor()
+         cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id, event_id,))
+         last_check_in = cur.fetchone()
+
+         # Check if the driver exists
+         cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
+         existing_driver = cur.fetchone()
+
+         if not existing_driver:
+             flash("Driver does not exist.", 'error')
+
+         if last_check_in and last_check_in['checked_in']:
+             flash("Car already checked in for today.", 'error')
+
+         cur.execute("INSERT INTO check_ins (driver_id, car_id, event_id, checked_in) VALUES (%s, %s, %s, TRUE)", (driver_id, car_id, event_id,))
+         mysql.connection.commit()
+         cur.close()
+         flash("Driver Check-in Successful.", 'success')
+
+
+
+         flash('Check-in successful!', 'success')
+    else:
+        flash('Check-in failed. Please ensure all fields are filled.', 'error')
+
+    return redirect(url_for('check_in'))
 
 @app.route('/check_in', methods=['GET', 'POST'])
 def check_in():
-    events = get_events_for_today()
     messages = []
+    cars, events, driver_id = [], get_events_for_today(), None
+    if request.method == 'POST' and 'driver_id' in request.form:
+        driver_id = request.form['driver_id']
+        cars = get_car_data_by_driver(driver_id)
+        if not cars:
+            flash('No cars found for this driver.', 'error')
 
-    if request.method == 'POST':
-        driver_id = request.form.get('driver_id')
-        event_id = request.form.get('event_id')
+    return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, messages=messages)
 
-        if driver_id:
-            # Check if the car has already checked in for today
-            cur = mysql.connection.cursor()
-            cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id, event_id,))
-            last_check_in = cur.fetchone()
 
-            # Check if the driver exists
-            cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
-            existing_driver = cur.fetchone()
+# @app.route('/check_in', methods=['GET', 'POST'])
+# def check_in():
+#     messages = []
+#     if request.method == 'POST':
+#         driver_id = request.form.get('driver_id')
+#         event_id = request.form.get('event_id')
 
-            if not existing_driver:
-                messages.append("Driver doesn't exist.")
+#         if driver_id and event_id:
+#             # Fetch the cars associated with the driver_id
+#             cur = mysql.connection.cursor()
+#             cur.execute("SELECT * FROM cars WHERE driver_id = %s", (driver_id,))
+#             cars = cur.fetchall()
+            
+#             cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
+#             existing_driver = cur.fetchone()
+#             cur.close()
+#             if not existing_driver:
+#                 messages.append("Driver does not exist.")
+#                 driver_id = None
+#             # Fetch today's events
+#             events = get_events_for_today()
+#             session['driver_id'] = driver_id
 
-            if last_check_in and last_check_in['checked_in']:
-                messages.append("Car already checked in for today.")
+#             return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, event_id=event_id, messages=messages)
 
-            if not messages:
-                cur.execute("INSERT INTO check_ins (driver_id, event_id, checked_in) VALUES (%s, %s, TRUE) ON DUPLICATE KEY UPDATE checked_in = TRUE", (driver_id, event_id,))
-                mysql.connection.commit()
-                cur.close()
-                messages.append("Driver Check in Sucessful.")
-                #return redirect(url_for('check_in'))
+#     # Fetch today's events
+#     events = get_events_for_today()
+#     return render_template('check_in.html', events=events, messages=messages)
 
-    return render_template('check_in.html', messages=messages, events=events)
+# # Add a new route to handle the final check-in after selecting a car
+# @app.route('/final_check_in', methods=['POST'])
+# def final_check_in():
+#     messages = []
+#     driver_id = request.form.get('driver_id')
+#     car_id = request.form.get('car_id')
+#     event_id = request.form.get('event_id')
+
+#     if driver_id and car_id and event_id:
+#         # Check if the car has already checked in for today
+#         cur = mysql.connection.cursor()
+#         cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id, event_id,))
+#         last_check_in = cur.fetchone()
+
+#         # Check if the driver exists
+#         cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
+#         existing_driver = cur.fetchone()
+
+#         if not existing_driver:
+#             messages.append("Driver does not exist.")
+
+#         if last_check_in and last_check_in['checked_in']:
+#             messages.append("Car already checked in for today.")
+
+#         cur.execute("INSERT INTO check_ins (driver_id, car_id, event_id, checked_in) VALUES (%s, %s, %s, TRUE)", (driver_id, car_id, event_id,))
+#         mysql.connection.commit()
+#         cur.close()
+#         messages.append("Driver Check-in Successful.")
+
+#     return redirect(url_for('check_in', messages=messages))
+
 
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
 def delete_driver(driver_id):
@@ -347,13 +427,15 @@ def event_check_ins():
     if selected_event_id:
         cur = mysql.connection.cursor()
         cur.execute("""
-            SELECT drivers.id, drivers.first_name, drivers.last_name, check_ins.check_in_time, cars.id as car_id, car_inspections.inspection_status
-            FROM drivers
-            LEFT JOIN check_ins ON drivers.id = check_ins.driver_id
-            LEFT JOIN cars ON drivers.id = cars.driver_id
-            LEFT JOIN car_inspections ON cars.id = car_inspections.car_id
+            SELECT DISTINCT
+                drivers.first_name,
+                drivers.last_name,
+                check_ins.check_in_time,
+                car_inspections.inspection_status
+            FROM check_ins
+            JOIN drivers ON check_ins.driver_id = drivers.id
+            LEFT JOIN car_inspections ON check_ins.car_id = car_inspections.car_id
             WHERE check_ins.event_id = %s
-            ORDER BY check_ins.check_in_time ASC
         """, (selected_event_id,))
         check_ins = cur.fetchall()
         cur.close()
@@ -446,4 +528,5 @@ def car_inspection():
     
 if __name__ == '__main__':
     #app.run(debug=True)
+    app.secret_key = 'supersecret'
     app.run(debug=True, ssl_context=('server.crt', 'server.key'))
