@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM python:3.11-slim-bookworm
+FROM ubuntu:22.04
 
 # Install Git
 RUN apt update  -y 
@@ -17,6 +17,7 @@ RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 # Set the working directory
 WORKDIR /app
 RUN pip3 install -r requirements.txt
+RUN python -m pip install werkzeug
 
 
 # Specify the default command to run when the container starts
