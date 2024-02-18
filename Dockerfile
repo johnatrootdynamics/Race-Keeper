@@ -20,3 +20,4 @@ WORKDIR /app
 
 # Specify the default command to run when the container starts
 CMD ["python", "app.py"]
+CMD ["ls"]
