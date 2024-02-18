@@ -1,5 +1,5 @@
 Flask
+Werkzeug
 qrcode
 flask_mysqldb
-Werkzeug
 MySQLdb
