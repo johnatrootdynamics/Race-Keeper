@@ -20,5 +20,4 @@ RUN pip install -r requirements.txt
 
 
 # Specify the default command to run when the container starts
-CMD ["python3", "app.py"]
-CMD ["ls"]
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
