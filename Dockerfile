@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 # Install Git
-RUN apt install -y git
+RUN apt-get install -y git
 
 
 # Clone the repository
