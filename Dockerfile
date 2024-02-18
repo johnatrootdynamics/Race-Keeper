@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 
 # Install Git
 RUN apt update && \
-    apt install -y git
+    apt install -y git && \
     apt install -y mysql-server
 
 
