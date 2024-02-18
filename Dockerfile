@@ -6,7 +6,7 @@ RUN apt update  -y
 RUN apt install -y git 
 RUN apt install -y python
 RUN apt-get install -y python3-pip
-RUN pip install -r requirements.txt
+
 
 # Clone the repository
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
@@ -16,7 +16,7 @@ RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 
 # Set the working directory
 WORKDIR /app
-
+RUN pip install -r requirements.txt
 
 
 # Specify the default command to run when the container starts
