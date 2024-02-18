@@ -5,7 +5,7 @@ FROM ubuntu:20.04
 RUN apt update  -y && \
     apt install -y git && \
     apt install -y python && \
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
 
 # Clone the repository
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
