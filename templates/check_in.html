@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Your existing <head> content here -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Driver Check-In</title>
+    <!-- Include your CSS files here -->
 </head>
 <body>
     <div class="container">
@@ -41,5 +46,28 @@
             </form>
         {% endif %}
     </div>
+
+    <button type="button" id="checkInButton" style="display: none;">Check-In</button>
+
+<!-- Back to Home link -->
+<a href="{{ url_for('index') }}" class="back-button">Back to Home</a>
+
+<!-- JavaScript to show/hide elements and enable Check-In button -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const lookupButton = document.getElementById("lookupButton");
+        const carList = document.getElementById("carList");
+        const eventList = document.getElementById("eventList");
+        const checkInButton = document.getElementById("checkInButton");
+
+        lookupButton.addEventListener("click", () => {
+            // Show the lists of cars and events
+            carList.style.display = "block";
+            eventList.style.display = "block";
+            checkInButton.style.display = "block";
+        });
+    });
+</script>
+    <!-- Include your JavaScript files here -->
 </body>
 </html>
