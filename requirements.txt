@@ -1,1 +1,5 @@
 Flask
+qrcode
+flask_mysqldb
+werkzeug.utils
+MySQLdb.cursors
