@@ -5,7 +5,7 @@ FROM ubuntu:20.04
 RUN apt update  -y 
 RUN apt install -y git 
 RUN apt install -y python
-RUN apt install -y python-pip
+RUN apt-get install -y python-pip
 RUN pip install -r requirements.txt
 
 # Clone the repository
