@@ -2,9 +2,9 @@
 FROM ubuntu:20.04
 
 # Install Git
-RUN apt-get update && \
-    apt-get install -y git
-    apt-get install -y mysql-server
+RUN apt update && \
+    apt install -y git
+    apt install -y mysql-server
 
 
 # Clone the repository
