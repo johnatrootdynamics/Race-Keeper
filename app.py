@@ -529,4 +529,5 @@ def car_inspection():
 if __name__ == '__main__':
     #app.run(debug=True)
     app.secret_key = 'supersecret'
-    app.run(debug=True, ssl_context=('server.crt', 'server.key'))
+    #app.run(debug=True, ssl_context=('server.crt', 'server.key'))
+    app.run(debug=True
