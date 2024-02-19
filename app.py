@@ -73,8 +73,6 @@ def index():
     # Fetch and display list of drivers
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM drivers")
-    if cur.rowcount == 0:
-        flash('No drivers found.', 'error')
     drivers = cur.fetchall()
     cur.close()
     return render_template('index.html', drivers=drivers)

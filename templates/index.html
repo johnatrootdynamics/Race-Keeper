@@ -11,6 +11,7 @@
 </head>
 <body>
     <div class="container profile-container">
+        {% if driver %}
         <h1 class="title">Driver List</h1>
         <table id="driversTable">
             <thead>
@@ -30,7 +31,9 @@
                 {% endfor %}
             </tbody>
         </table>
-
+        {% else %}
+        <p> no drivers yet</p>
+        {% endif %}
         <div class="button-container">
             <a href="{{ url_for('add_driver') }}"><button class="add-driver-button">Add Driver</button></a>
             <a href="{{ url_for('check_in') }}"><button>Check In</button></a>
