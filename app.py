@@ -72,6 +72,7 @@ def allowed_file(filename):
 def index():
     # Fetch and display list of drivers
     cur = mysql.connection.cursor()
+    print(cur)
     cur.execute("SELECT * FROM drivers")
     drivers = cur.fetchall()
     cur.close()
