@@ -5,6 +5,7 @@ EXPOSE 80
 RUN apt update  -y
 RUN apt install python3-venv -y
 RUN apt install -y git
+RUN mkdir /app
 WORKDIR /app
 RUN python3 -m venv app
 RUN source app/bin/activate
