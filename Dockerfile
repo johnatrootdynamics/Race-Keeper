@@ -44,6 +44,7 @@ RUN pip3 install setuptools==65.5.0
 RUN pip3 install typing_extensions==4.9.0  
 RUN pip3 install urllib3==2.2.1  
 RUN pip3 install Werkzeug
+RUN pip3 install pyopenssl
 #RUN python -m pip install werkzeug
 
 
