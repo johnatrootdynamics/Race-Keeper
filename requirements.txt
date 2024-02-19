@@ -2,7 +2,7 @@
 #qrcode
 #flask_mysqldb
 werkzeug==3.0.1
-markupsafe==2.0.1
+#markupsafe==2.0.1
 #MySQLdb.cursors
 mysqlclient==2.2.1
 Flask==3.0.0
