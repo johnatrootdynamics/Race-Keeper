@@ -9,7 +9,7 @@ from MySQLdb.cursors import DictCursor
 import qrcode 
 from datetime import datetime
 app = Flask(__name__)
-
+app.config['SECRET_KEY']= 'supersecret123123'
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
 app.config['MYSQL_USER'] = 'raceapp'
@@ -19,7 +19,8 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['SESSION_TYPE'] = 'filesystem'
-app.secret_key = 'supersecret'
+
+
 session(app)
 mysql = MySQL(app)
 
