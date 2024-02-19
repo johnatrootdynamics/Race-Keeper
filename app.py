@@ -10,9 +10,9 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configure MySQL
-app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
+app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'racecar'
-app.config['MYSQL_PASSWORD'] = 'racecar123123'
+app.config['MYSQL_PASSWORD'] = 'racecar123!@#'
 app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
