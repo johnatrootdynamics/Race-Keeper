@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM debian:11
+FROM python:3.11-slim-bullseye
 EXPOSE 80
 # Install Git
 RUN apt update  -y
