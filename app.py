@@ -1,7 +1,7 @@
 # app.py
 
 from flask import Flask, render_template, request, redirect, url_for, send_file, flash, session
-from flask_session import Session
+#from flask_session import Session
 from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
 import os
@@ -9,9 +9,7 @@ from MySQLdb.cursors import DictCursor
 import qrcode 
 from datetime import datetime
 app = Flask(__name__)
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
-sess = Session()
+app.config['SECRET_KEY'] = '123123213212123'
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
 app.config['MYSQL_USER'] = 'raceapp'
