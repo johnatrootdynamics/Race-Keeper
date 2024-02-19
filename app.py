@@ -1,6 +1,7 @@
 # app.py
 
-from flask import Flask, render_template, request, redirect, url_for, session, send_file, flash
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash
+from flask_session import Session
 from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
 import os

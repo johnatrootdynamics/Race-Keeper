@@ -24,6 +24,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Set the working directory
 #RUN pip3 install -r requirements.txt  
 RUN pip3 install flask  
+RUN pip3 install flask-session 
 RUN pip3 install pypng==0.20220715.0  
 RUN pip3 install blinker==1.7.0  
 RUN pip3 install certifi==2024.2.2  
