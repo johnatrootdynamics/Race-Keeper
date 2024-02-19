@@ -9,6 +9,7 @@ RUN apt install -y git
 # Clone the repository
 
 # Copy files from the cloned repository to the desired location in the Docker image
+RUN mkdir /app
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 COPY /app/* /opt/venv/
 ENV VIRTUAL_ENV=/opt/venv
