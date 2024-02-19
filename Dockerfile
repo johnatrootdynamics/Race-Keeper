@@ -7,7 +7,7 @@ RUN apt install python3-venv -y
 RUN apt install -y git
 WORKDIR /app
 RUN python3 -m venv venv
-RUN source venv/bin/activate
+RUN source /app/bin/activate
 #RUN python -m pip install --upgrade pip
 # Clone the repository
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
