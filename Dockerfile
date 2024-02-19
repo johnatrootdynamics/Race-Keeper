@@ -15,7 +15,7 @@ RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 
 # Set the working directory
 WORKDIR /app
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt --break-system-packages
 #RUN python -m pip install werkzeug
 
 
