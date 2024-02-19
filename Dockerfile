@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM debian:12
+FROM debian:11
 EXPOSE 80
 # Install Git
 RUN apt update  -y
