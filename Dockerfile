@@ -5,14 +5,18 @@ EXPOSE 80
 RUN apt update  -y
 RUN apt install python3-venv -y
 RUN apt install -y git
-RUN python3 -m venv app
-RUN source app/bin/activate
 #RUN python -m pip install --upgrade pip
 # Clone the repository
-RUN git clone https://github.com/johnatrootdynamics/Race-Keeper
 
 # Copy files from the cloned repository to the desired location in the Docker image
 
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install dependencies:
+RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
+COPY /app/* .
 
 # Set the working directory
 #RUN pip3 install -r requirements.txt --break-system-packages
@@ -39,5 +43,6 @@ RUN pip3 install Werkzeug==3.0.1 --break-system-packages
 #RUN python -m pip install werkzeug
 
 
-# Specify the default command to run when the container starts
-CMD [ "python3", "app.py" ]
+
+# Run the application:
+CMD ["python3", "app.py"]
