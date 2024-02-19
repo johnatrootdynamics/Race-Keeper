@@ -7,7 +7,8 @@ RUN apt install -y git
 RUN apt install -y python3-full
 RUN apt install -y python3-pip
 #RUN python -m pip install --upgrade pip
-
+python3 -m venv .venv
+source .venv/bin/activate
 # Clone the repository
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 
@@ -16,7 +17,7 @@ RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 
 # Set the working directory
 WORKDIR /app
-RUN pip3 install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 #RUN python -m pip install werkzeug
 
 
