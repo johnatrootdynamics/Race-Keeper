@@ -43,7 +43,7 @@ RUN pip3 install requests==2.30.0
 RUN pip3 install setuptools==65.5.0  
 RUN pip3 install typing_extensions==4.9.0  
 RUN pip3 install urllib3==2.2.1  
-RUN pip3 install Werkzeug==3.0.1  
+RUN pip3 install Werkzeug==2.3.7  
 #RUN python -m pip install werkzeug
 
 
