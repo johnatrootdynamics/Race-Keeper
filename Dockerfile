@@ -23,7 +23,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Set the working directory
 #RUN pip3 install -r requirements.txt  
-RUN pip3 install flask==2.0.2  
+RUN pip3 install flask  
 RUN pip3 install flask-session 
 RUN pip3 install pypng==0.20220715.0  
 RUN pip3 install blinker==1.7.0  
@@ -43,7 +43,7 @@ RUN pip3 install requests==2.30.0
 RUN pip3 install setuptools==65.5.0  
 RUN pip3 install typing_extensions==4.9.0  
 RUN pip3 install urllib3==2.2.1  
-RUN pip3 install Werkzeug==2.0.0
+RUN pip3 install Werkzeug
 #RUN python -m pip install werkzeug
 
 
