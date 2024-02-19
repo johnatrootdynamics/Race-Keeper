@@ -73,6 +73,8 @@ def index():
     # Fetch and display list of drivers
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM drivers")
+    if cur.rowcount == 0:
+        flash('No drivers found.', 'error')
     drivers = cur.fetchall()
     cur.close()
     return render_template('index.html', drivers=drivers)
@@ -527,6 +529,6 @@ def car_inspection():
 
     
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    app.run(debug=True,host='0.0.0.0', port=80)
     #app.secret_key = 'supersecret'
     #app.run(debug=True, ssl_context=('server.crt', 'server.key'))
