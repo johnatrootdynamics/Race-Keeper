@@ -9,14 +9,15 @@ RUN apt install -y git
 # Clone the repository
 
 # Copy files from the cloned repository to the desired location in the Docker image
-
+RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
+COPY /app .
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install dependencies:
-RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
-COPY /app/* .
+
+
 
 # Set the working directory
 #RUN pip3 install -r requirements.txt --break-system-packages
