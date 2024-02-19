@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM ubuntu:24.04
+FROM debian:12
 EXPOSE 80
 # Install Git
 RUN apt update  -y
