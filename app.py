@@ -10,7 +10,7 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configure MySQL
-app.config['MYSQL_HOST'] = 'srv-captain--racedb-db:3306'
+app.config['MYSQL_HOST'] = 'srv-captain--racedb-db'
 app.config['MYSQL_USER'] = 'racecar'
 app.config['MYSQL_PASSWORD'] = 'racecar123!@#'
 app.config['MYSQL_DB'] = 'race_car_db'
