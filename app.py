@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'racecar'
+app.config['MYSQL_USER'] = 'raceapp'
 app.config['MYSQL_PASSWORD'] = 'racecar123!@#'
 app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
