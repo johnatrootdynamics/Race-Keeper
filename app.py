@@ -10,6 +10,7 @@ import qrcode
 from datetime import datetime
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123123213212123'
+app.config['SESSION_TYPE'] = 'filesystem'
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
 app.config['MYSQL_USER'] = 'raceapp'
@@ -18,7 +19,7 @@ app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-app.config['SESSION_TYPE'] = 'filesystem'
+
 
 
 
