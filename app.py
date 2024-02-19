@@ -1,6 +1,6 @@
 # app.py
 
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash, session
 from flask_session import Session
 from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
@@ -20,6 +20,7 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.secret_key = 'supersecret'
+session(app)
 mysql = MySQL(app)
 
 def get_driver_data(driver_id):
