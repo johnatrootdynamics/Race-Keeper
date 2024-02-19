@@ -9,6 +9,8 @@ from MySQLdb.cursors import DictCursor
 import qrcode 
 from datetime import datetime
 app = Flask(__name__)
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
 sess = Session()
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
@@ -20,9 +22,7 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['SESSION_TYPE'] = 'filesystem'
 
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
-sess.init_app(app)
+
 
 mysql = MySQL(app)
 
