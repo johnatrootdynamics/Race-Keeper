@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'srv-captain--racedb-db:3306'
-app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_USER'] = 'racecar'
 app.config['MYSQL_PASSWORD'] = 'racecar123!@#'
 app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
@@ -20,6 +20,7 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
 cur = mysql.connection.cursor(DictCursor)
+
 def get_driver_data(driver_id):
     cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT * FROM drivers WHERE id = %s", (driver_id,))
