@@ -6,7 +6,7 @@ RUN apt update  -y
 RUN apt install python3-venv -y
 RUN apt install -y git
 WORKDIR /app
-RUN python3 -m vcenv venv
+RUN python3 -m venv venv
 RUN source venv/bin/activate
 #RUN python -m pip install --upgrade pip
 # Clone the repository
