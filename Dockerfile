@@ -1,11 +1,13 @@
 # Use an appropriate base image
-FROM python:3.11-slim-bullseye
+FROM python:3.11.3
 EXPOSE 80
 # Install Git
 RUN apt update  -y
-RUN apt install -y git 
-RUN apt install -y python3-full
-RUN apt install -y python3-pip
+RUN apt install python3-venv -y
+RUN apt install -y git
+WORKDIR /app
+RUN python3 -m vcenv venv
+RUN source venv/bin/activate
 #RUN python -m pip install --upgrade pip
 # Clone the repository
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
@@ -14,8 +16,8 @@ RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 
 
 # Set the working directory
-WORKDIR /app
 #RUN pip3 install -r requirements.txt --break-system-packages
+RUN pip3 install flask --break-system-packages
 RUN pip3 install pypng==0.20220715.0 --break-system-packages
 RUN pip3 install blinker==1.7.0 --break-system-packages
 RUN pip3 install certifi==2024.2.2 --break-system-packages
