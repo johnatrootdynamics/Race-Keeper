@@ -1,6 +1,14 @@
-Flask
-qrcode
-flask_mysqldb
-werkzeug==0.16.0
+#Flask
+#qrcode
+#flask_mysqldb
+werkzeug==3.0.1
 markupsafe==2.0.1
-MySQLdb.cursors
+#MySQLdb.cursors
+mysqlclient==2.2.1
+Flask==3.0.0
+Flask-MySQLdb==2.0.0
+Jinja2==3.1.3
+MarkupSafe== 2.1.3
+pypng==0.20220715.0
+qrcode==7.4.2
+requests==2.30.0
