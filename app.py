@@ -17,7 +17,7 @@ app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
+app.secret_key = 'supersecret'
 mysql = MySQL(app)
 
 def get_driver_data(driver_id):
@@ -528,7 +528,6 @@ def car_inspection():
 
     
 if __name__ == '__main__':
-    app.secret_key = 'supersecret'
     app.run(debug=True, host='0.0.0.0', port=80)
     
     #app.run(debug=True)
