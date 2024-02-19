@@ -1,11 +1,11 @@
 # Use an appropriate base image
-FROM ubuntu:latest
+FROM ubuntu:24.04
 EXPOSE 80
 # Install Git
 RUN apt update  -y
 RUN apt install -y git 
 RUN apt install -y python3
-RUN apt-get install -y python3-pip
+RUN apt install -y python3-pip
 #RUN python -m pip install --upgrade pip
 
 # Clone the repository
