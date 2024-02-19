@@ -9,6 +9,7 @@ from MySQLdb.cursors import DictCursor
 import qrcode 
 from datetime import datetime
 app = Flask(__name__)
+sess = Session()
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
 app.config['MYSQL_USER'] = 'raceapp'
@@ -21,7 +22,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 
 
 session(app)
-app.secret_key = "thisthingbig"
+
 mysql = MySQL(app)
 
 def get_driver_data(driver_id):
@@ -532,6 +533,8 @@ def car_inspection():
 
     
 if __name__ == '__main__':
+    app.secret_key = "thisthingbig"
+    sess.init_app(app)
     app.run(debug=True, host='0.0.0.0', port=80)
     
     #app.run(debug=True)
