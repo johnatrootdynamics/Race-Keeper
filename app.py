@@ -17,6 +17,7 @@ app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+app.config['SESSION_TYPE'] = 'filesystem'
 app.secret_key = 'supersecret'
 mysql = MySQL(app)
 
