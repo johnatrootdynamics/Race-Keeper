@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM ubuntu:22.04
+FROM python:3.11.3
 
 # Install Git
 RUN apt update  -y
