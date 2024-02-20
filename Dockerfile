@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM python:3.10
+FROM python:3.11.4
 EXPOSE 443
 # Install Git
 RUN apt update  -y
