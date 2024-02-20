@@ -24,7 +24,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Set the working directory
 #RUN pip3 install -r requirements.txt  
 RUN pip3 install pypng==0.20220715.0   
-RUN pip3 install Flask==2.0.2 
+RUN pip3 install Flask==3.0.0
 RUN pip3 install Flask-MySQLdb==2.0.0  
 RUN pip3 install Jinja2==3.1.3  
 RUN pip3 install mysql-connector-python==8.3.0  
