@@ -1,6 +1,6 @@
 # Use an appropriate base image
-FROM python:3.11
-EXPOSE 80
+FROM python:3.10
+EXPOSE 443
 # Install Git
 RUN apt update  -y
 RUN apt install python3-venv -y
