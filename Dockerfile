@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM python:3.11.0a7-slim
+FROM python:3.11.3
 EXPOSE 80
 # Install Git
 RUN apt update  -y
