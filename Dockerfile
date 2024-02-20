@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM python:3.11.3
+FROM python:3.11.2
 EXPOSE 80
 # Install Git
 RUN apt update  -y
@@ -22,7 +22,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 
 # Set the working directory
-#RUN pip3 install -r requirements.txt  
+#RUN pip3 install -r requirements.txt
+#RUN pip3 install flask
 RUN pip3 install pypng==0.20220715.0   
 RUN pip3 install Flask==3.0.0
 RUN pip3 install Flask-MySQLdb==2.0.0  
