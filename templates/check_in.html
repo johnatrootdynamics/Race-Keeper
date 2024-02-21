@@ -21,6 +21,7 @@
         <form action="{{ url_for('check_in') }}" method="post">
             <label for="driver_id">Driver ID:</label>
             <input type="text" id="driver_id" name="driver_id" required>
+            <button type="button" id="scanQRButton">Scan QR Code</button>
             <button type="submit">Look Up</button>
         </form>
 
@@ -65,6 +66,47 @@
             carList.style.display = "block";
             eventList.style.display = "block";
             checkInButton.style.display = "block";
+        });
+    });
+</script>
+<script>
+    // JavaScript code for QR code scanning
+    document.addEventListener("DOMContentLoaded", function () {
+        const scanQRButton = document.getElementById("scanQRButton");
+        const carIdInput = document.getElementById("car_id");
+        const qrReader = new Html5Qrcode("qr-reader");
+        const qrResultContainer = document.getElementById("qr-reader-results");
+
+        scanQRButton.addEventListener("click", () => {
+            qrReader.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                (decodedText, decodedResult) => {
+                    console.log(`Scan result: ${decodedText}`, decodedResult);
+                    qrResultContainer.innerHTML = decodedText;
+
+                    // Use a regular expression to extract the "Car-ID:" value
+                    const carIdMatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
+
+                    if (carIdMatch) {
+                        const carId = carIdMatch[1].trim();
+                        carIdInput.value = carId;
+                    } else {
+                        console.error('Driver-ID not found in QR code.');
+                    }
+
+                    qrReader.stop().then(ignore => {
+                        // QR Scanning is stopped.
+                    }).catch(err => {
+                        // Stop failed, handle it.
+                    });
+                },
+                (errorMessage) => {
+                    // Parse error, ignore it.
+                })
+                .catch((err) => {
+                    // Start failed, handle it.
+                });
         });
     });
 </script>
