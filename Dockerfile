@@ -29,7 +29,7 @@ RUN pip3 install blinker==1.7.0
 RUN pip3 install certifi==2024.2.2  
 RUN pip3 install charset-normalizer==3.3.2  
 RUN pip3 install click==8.1.7  
-RUN pip3 install Flask==3.0.0  
+#RUN pip3 install Flask==3.0.0  
 RUN pip3 install Flask-MySQLdb==2.0.0  
 RUN pip3 install idna==3.6  
 RUN pip3 install itsdangerous==2.1.2  
