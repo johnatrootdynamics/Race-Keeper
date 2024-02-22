@@ -71,7 +71,16 @@
                 { fps: 10, qrbox: 250 },
                 (decodedText, decodedResult) => {
                     // Populate the driver_id input with the scanned text
-                    driverIdInput.value = decodedText; 
+                    // driverIdInput.value = decodedText; 
+                    const driveridmatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
+
+                    if (driveridmatch) {
+                        const drivrid = driveridmatch[1].trim();
+                        driverIdInput.value = drivrid;
+                    } else {
+                        console.error('Car-ID not found in QR code.');
+                    }
+
 
                     // Stop the QR scanner
                     qrReader.stop().catch(err => console.error('Error stopping QR scanner:', err));
