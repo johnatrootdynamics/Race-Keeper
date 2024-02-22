@@ -13,8 +13,8 @@ RUN yes | rm /opt/venv/*
 RUN mkdir /app
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
 WORKDIR /app
-COPY * /opt/venv/
 ENV VIRTUAL_ENV=/opt/venv
+COPY * /opt/venv/
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
