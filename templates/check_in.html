@@ -69,11 +69,15 @@
             checkInButton.style.display = "block";
         });
     });
+</script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
     document.addEventListener("DOMContentLoaded", function () {
         const scanQRButton = document.getElementById("scanQRButton");
-        const carIdInput = document.getElementById("driver_id");
+        const driverIdInput = document.getElementById("driver_id");
         const qrReader = new Html5Qrcode("qr-reader");
-        const qrResultContainer = document.getElementById("qr-reader-results");
+        const qrResultContainer = document.createElement('div'); // Assuming you want to display results somewhere
+        document.body.appendChild(qrResultContainer); // Append the result container to the body
 
         scanQRButton.addEventListener("click", () => {
             qrReader.start(
@@ -81,17 +85,19 @@
                 { fps: 10, qrbox: 250 },
                 (decodedText, decodedResult) => {
                     console.log(`Scan result: ${decodedText}`, decodedResult);
-                    qrResultContainer.innerHTML = decodedText;
+                    qrResultContainer.innerHTML = decodedText; // Display scan result
 
-                    // Use a regular expression to extract the "Car-ID:" value
-                    const carIdMatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
+                    // Use a regular expression to extract the "Driver-ID:" value if needed
+                    // const driverIdMatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
 
-                    if (carIdMatch) {
-                        const carId = carIdMatch[1].trim();
-                        carIdInput.value = carId;
-                    } else {
-                        console.error('Driver-ID not found in QR code.');
-                    }
+                    // if (driverIdMatch) {
+                    //     const driverId = driverIdMatch[1].trim();
+                    //     driverIdInput.value = driverId; // Populate the input field with the driver ID
+                    // } else {
+                    //     console.error('Driver-ID not found in QR code.');
+                    // }
+
+                    driverIdInput.value = decodedText; // Directly use decoded text for simplicity
 
                     qrReader.stop().then(ignore => {
                         // QR Scanning is stopped.
