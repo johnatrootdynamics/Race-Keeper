@@ -55,7 +55,7 @@ def generate_qr_code(data, filename):
 def get_events_for_today():
     today = datetime.now().date()
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM events WHERE DATE(event_date) = CURRENT_DATE")
+    cur.execute("SELECT * FROM events WHERE DATE(event_date) = %s", (today,))
     events = cur.fetchall()
     cur.close()
     return events
