@@ -1,6 +1,7 @@
 # Use an appropriate base imagee
 FROM python:3.11.2
 EXPOSE 80
+ENV TZ="America/New_York"
 # Install Git
 RUN apt update  -y
 RUN apt install python3-venv -y
