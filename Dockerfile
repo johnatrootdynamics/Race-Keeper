@@ -7,7 +7,6 @@ RUN apt install python3-venv -y
 RUN apt install -y git
 #RUN python -m pip install --upgrade pip
 # Clone the repository
-RUN yes | rm /opt/venv/*
 # Copy files from the cloned repository to the desired location in the Docker image
 RUN mkdir /app
 RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
