@@ -57,63 +57,45 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const lookupButton = document.getElementById("lookupButton");
-        const carList = document.getElementById("carList");
-        const eventList = document.getElementById("eventList");
-        const checkInButton = document.getElementById("checkInButton");
-
-        lookupButton.addEventListener("click", () => {
-            // Show the lists of cars and events
-            carList.style.display = "block";
-            eventList.style.display = "block";
-            checkInButton.style.display = "block";
-        });
-    });
-</script>
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize elements from the document
         const scanQRButton = document.getElementById("scanQRButton");
         const driverIdInput = document.getElementById("driver_id");
         const qrReader = new Html5Qrcode("qr-reader");
-        const qrResultContainer = document.createElement('div'); // Assuming you want to display results somewhere
-        document.body.appendChild(qrResultContainer); // Append the result container to the body
-
+        
+        // Handle QR code scanning
         scanQRButton.addEventListener("click", () => {
             qrReader.start(
-                { facingMode: "environment" },
+                { facingMode: "environment" }, 
                 { fps: 10, qrbox: 250 },
                 (decodedText, decodedResult) => {
-                    console.log(`Scan result: ${decodedText}`, decodedResult);
-                    qrResultContainer.innerHTML = decodedText; // Display scan result
+                    // Populate the driver_id input with the scanned text
+                    driverIdInput.value = decodedText; 
 
-                    // Use a regular expression to extract the "Driver-ID:" value if needed
-                    // const driverIdMatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
-
-                    // if (driverIdMatch) {
-                    //     const driverId = driverIdMatch[1].trim();
-                    //     driverIdInput.value = driverId; // Populate the input field with the driver ID
-                    // } else {
-                    //     console.error('Driver-ID not found in QR code.');
-                    // }
-
-                    driverIdInput.value = decodedText; // Directly use decoded text for simplicity
-
-                    qrReader.stop().then(ignore => {
-                        // QR Scanning is stopped.
-                    }).catch(err => {
-                        // Stop failed, handle it.
-                    });
+                    // Stop the QR scanner
+                    qrReader.stop().catch(err => console.error('Error stopping QR scanner:', err));
                 },
-                (errorMessage) => {
-                    // Parse error, ignore it.
-                })
-                .catch((err) => {
-                    // Start failed, handle it.
-                });
+                (error) => console.error('Error decoding QR code:', error)
+            ).catch(err => console.error('Error starting QR scanner:', err));
         });
+
+        // Example of showing/hiding elements based on actions, adjust as needed
+        const lookupButton = document.getElementById('lookupButton'); // Adjust this ID based on your actual button for looking up driver ID
+        const carList = document.getElementById("carList"); // Ensure you have an element with this ID when cars are listed
+        const eventList = document.getElementById("eventList"); // Ensure you have an element with this ID for event selection
+        const checkInButton = document.getElementById("checkInButton"); // If you have a button for final check-in action
+
+        // Example event listener for lookupButton, showing carList and eventList
+        if (lookupButton) {
+            lookupButton.addEventListener("click", () => {
+                if (carList) carList.style.display = "block";
+                if (eventList) eventList.style.display = "block";
+                if (checkInButton) checkInButton.style.display = "block";
+            });
+        }
     });
 </script>
+
+
 
     <!-- Include your JavaScript files here -->
 </body>
