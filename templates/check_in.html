@@ -30,7 +30,7 @@
             <button type="submit">Look Up</button>
         </form>
         {% if driver_id %}
-            <h1> {{ driver_id.first_name }} {{ driver_id.last_name }}</h1>
+            <h1> {{ driver.first_name }} {{ driver.last_name }}</h1>
             <form action="{{ url_for('final_check_in') }}" method="post">
                 <input type="hidden" name="driver_id" value="{{ driver_id }}">
                 

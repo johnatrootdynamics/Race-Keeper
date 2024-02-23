@@ -188,7 +188,7 @@ def check_in():
         
             
 
-    return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, messages=messages)
+    return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, messages=messages, driver=driver)
 
 
 # @app.route('/check_in', methods=['GET', 'POST'])
