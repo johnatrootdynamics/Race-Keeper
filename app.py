@@ -177,7 +177,7 @@ def check_in():
         cars = get_car_data_by_driver(driver_id)
         if not cars:
             flash('No cars found for this driver.', 'error')
-            flash(events, 'error')
+            
 
     return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, messages=messages)
 
