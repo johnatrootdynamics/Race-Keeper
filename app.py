@@ -176,8 +176,9 @@ def check_in():
         driver_id = request.form['driver_id']
         cars = get_car_data_by_driver(driver_id)
         driver = get_driver_data(driver_id)
-        if not cars:
-            flash('No cars found for this driver.', 'error')
+        if driver:
+            if not cars:
+                flash('No cars found for this driver.', 'error')
         elif not driver:
             flash('No driver found. Please try again.', 'error')
         elif driver and cars:
