@@ -153,11 +153,12 @@ def final_check_in():
 
          if last_check_in and last_check_in['checked_in']:
              flash("Car already checked in for today.", 'error')
-
-         cur.execute("INSERT INTO check_ins (driver_id, car_id, event_id, checked_in) VALUES (%s, %s, %s, TRUE)", (driver_id, car_id, event_id,))
-         mysql.connection.commit()
-         cur.close()
-         flash("Driver Check-in Successful.", 'success')
+         
+         else:
+           cur.execute("INSERT INTO check_ins (driver_id, car_id, event_id, checked_in) VALUES (%s, %s, %s, TRUE)", (driver_id, car_id, event_id,))
+           mysql.connection.commit()
+           cur.close()
+           flash("Driver Check-in Successful.", 'success')
 
 
 
