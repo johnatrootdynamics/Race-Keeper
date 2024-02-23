@@ -9,7 +9,7 @@
     <!-- Include your CSS files here -->
 </head>
 <body>
-    <div class="main-container">
+    <div class="container">
         <h1>Driver Check - In </h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -24,7 +24,7 @@
                 <label for="driver_id">Driver ID:</label>
                 <input type="text" id="driver_id" name="driver_id" required>
                 <button type="button" id="scanQRButton">Scan QR Code</button>
-            </div>  
+        </div>  
             <div style="width: 500px" id="qr-reader"></div>
             <div id="qr-reader-results"></div>
             <button type="submit">Look Up</button>
