@@ -30,7 +30,7 @@
             <button type="submit">Look Up</button>
         </form>
         {% if driver_id %}
-            <h1> {{ driver.first_name }} {{ driver.last_name }}</h1>
+            <label for="drivername"> {{ driver.first_name }} {{ driver.last_name }}</label>
             <form action="{{ url_for('final_check_in') }}" method="post">
                 <input type="hidden" name="driver_id" value="{{ driver_id }}">
                 
@@ -102,6 +102,7 @@
         // Example event listener for lookupButton, showing carList and eventList
         if (lookupButton) {
             lookupButton.addEventListener("click", () => {
+                if (drivername) carList.style.display = "block";
                 if (carList) carList.style.display = "block";
                 if (eventList) eventList.style.display = "block";
                 if (checkInButton) checkInButton.style.display = "block";
