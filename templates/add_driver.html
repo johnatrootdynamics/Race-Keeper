@@ -14,7 +14,11 @@
         <h1 class="title">Add Driver</h1>
         <form class="add-driver-form" method="POST" action="{{ url_for('add_driver') }}" enctype="multipart/form-data">
             <label for="dclass">Driver Class:</label>
-            <input type="text" name="dclass">
+            <select name="dclass" id="dclass" required>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+            </select>
 
             <label for="first_name">First Name:</label>
             <input type="text" name="first_name" required>
