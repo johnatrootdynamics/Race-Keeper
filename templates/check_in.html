@@ -18,16 +18,17 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <div class="input-container"></div>
+        
         <form action="{{ url_for('check_in') }}" method="post">
-            <label for="driver_id">Driver ID:</label>
-            <input type="text" id="driver_id" name="driver_id" required>
-            <button type="button" id="scanQRButton">Scan QR Code</button>
+            <div class="input-container"></div>
+                <label for="driver_id">Driver ID:</label>
+                <input type="text" id="driver_id" name="driver_id" required>
+                <button type="button" id="scanQRButton">Scan QR Code</button>
+            </div>  
             <div style="width: 500px" id="qr-reader"></div>
             <div id="qr-reader-results"></div>
             <button type="submit">Look Up</button>
         </form>
-        </div>
         {% if driver_id %}
             <form action="{{ url_for('final_check_in') }}" method="post">
                 <input type="hidden" name="driver_id" value="{{ driver_id }}">
