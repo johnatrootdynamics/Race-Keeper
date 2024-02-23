@@ -162,7 +162,7 @@ def final_check_in():
 
 
 
-         flash('Check-in successful!', 'success')
+           flash('Check-in successful!', 'success')
     else:
         flash('Check-in failed. Please ensure all fields are filled.', 'error')
 
