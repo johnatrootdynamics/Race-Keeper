@@ -171,7 +171,7 @@ def final_check_in():
 @app.route('/check_in', methods=['GET', 'POST'])
 def check_in():
     messages = []
-    cars, events, driver_id = [], get_events_for_today(), None
+    cars, events, driver_id, driver = [], get_events_for_today(), None
     if request.method == 'POST' and 'driver_id' in request.form:
         driver_id = request.form['driver_id']
         cars = get_car_data_by_driver(driver_id)
