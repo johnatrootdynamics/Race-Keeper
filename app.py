@@ -164,7 +164,7 @@ def final_check_in():
 
            flash('Check-in successful!', 'success')
     else:
-        flash('Check-in failed. Please ensure all fields are filled.', 'error')
+        flash('Check-in failed. Please ensure all fields are filled.', 'danger')
 
     return redirect(url_for('check_in'))
 
@@ -178,13 +178,13 @@ def check_in():
         driver = get_driver_data(driver_id)
         if driver:
             if not cars:
-                flash('No cars found for this driver.', 'error')
+                flash('No cars found for this driver.', 'danger')
         elif not driver:
-            flash('No driver found. Please try again.', 'error')
+            flash('No driver found. Please try again.', 'danger')
         elif driver and cars:
             pass
         else:
-            flash('Something went wrong. Please try again', 'error')
+            flash('Something went wrong. Please try again', 'danger')
         
             
 
