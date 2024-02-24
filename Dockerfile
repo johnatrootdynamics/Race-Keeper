@@ -11,8 +11,8 @@ RUN apt install -y git
 # Copy files from the cloned repository to the desired location in the Docker image
 RUN mkdir /app
 ADD https://www.google.com /time.now
-RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
-WORKDIR /app
+RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app/app
+WORKDIR /app/app
 RUN mkdir static/uploads
 ENV VIRTUAL_ENV=/opt/venv
 COPY * /opt/venv/
