@@ -36,6 +36,7 @@
                         <option value="{{ event.id }}">{{ event.event_name }}</option>
                     {% endfor %}
                 </select>
+            </br>
 
                 <div class="checkboxes">
                     <label><input type="checkbox" name="ins_fluid"> No Oil Leaks</label><br>
@@ -44,7 +45,7 @@
                     <label><input type="checkbox" name="ins_cage"> Battery Tied Down</label><br>
                     <label><input type="checkbox" name="ins_bat"> Roll Cage</label><br>
                 </div>
-
+            </br>
                 <button type="submit">Inspect Car</button>
             </form>
             <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>

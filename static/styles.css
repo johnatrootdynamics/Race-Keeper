@@ -133,6 +133,7 @@ button {
 }
 .driver-name {
     margin: 0;
+    text-align: center;
 }
 
 .driver-picture {
