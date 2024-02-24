@@ -48,6 +48,7 @@
             <div class="profile-header">
                 <div class="driver-name-box">
                     <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
+                </div>
                 <div class="driver-picture-container">
                     {% if driver[0].picture_path %}
                         <img  src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture" class="driver-picture">
@@ -56,7 +57,7 @@
                     {% endif %}
                 </div>
 
-                </div>
+                
                 <div class="class-text-box">
                     <p class="class-text">{{ driver[0].class }}</p>
                 </div>
