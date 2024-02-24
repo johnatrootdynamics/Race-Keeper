@@ -550,7 +550,7 @@ ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 ACCESS_KEY = '604a4b8a45f4e8bcf2dd3eb5'
 SECRET_KEY = 'b31f7c0236fbcee4432b0ce0a6100b847c6114'
 BUCKET_NAME = 'oswimages'
-MINIO_API_HOST = 'https://s3.root-dynamics.com'
+MINIO_API_HOST = 'https://s3.root-dynamics.com:9000'
 
 
 def upload_object(filename, data, length):
