@@ -37,6 +37,26 @@
 </head>
 <body>
     <div class="main-container"> <!-- This will center the content like the Driver List page -->
+        <div class="profile-header">
+            <div class="driver-name-box">
+                <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
+            </div>
+            <div class="driver-picture-container">
+                {% if driver[0].picture_path %}
+                    <img  src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture" class="driver-picture">
+                {% else %}
+                    <p class="no-picture">No picture available</p>
+                {% endif %}
+            </div>
+
+            
+            <div class="class-text-box">
+                <p class="class-text">{{ driver[0].class }}</p>
+            </div>
+            <div class="qr-code-container">
+                <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Car QR Code" class="qr-code">
+            </div>
+        </div>
         <div class="tabs">
             <!-- Create tab buttons -->
             <button class="tab-button" onclick="showTab('profile')">Profile</button>
@@ -45,26 +65,7 @@
         </div>
         <!-- Profile Tab -->
         <div class="tab-content" id="profile-tab">
-            <div class="profile-header">
-                <div class="driver-name-box">
-                    <h1 class="driver-name">{{ driver[0].first_name }} {{ driver[0].last_name }}</h1>
-                </div>
-                <div class="driver-picture-container">
-                    {% if driver[0].picture_path %}
-                        <img  src="{{ url_for('get_picture',filename=driver[0].picture_path) }}" alt="Driver Picture" class="driver-picture">
-                    {% else %}
-                        <p class="no-picture">No picture available</p>
-                    {% endif %}
-                </div>
 
-                
-                <div class="class-text-box">
-                    <p class="class-text">{{ driver[0].class }}</p>
-                </div>
-                <div class="qr-code-container">
-                    <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" height="150" width="150" alt="Car QR Code" class="qr-code">
-                </div>
-            </div>
             
             <div class="{% if checkedin[0] %}checked_in{% else %}not_checked_in{% endif %}">
                 {% if checkedin[0] %}
