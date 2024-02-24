@@ -554,7 +554,7 @@ MINIO_API_HOST = "https://s3-api.root-dynamics.com"
 
 
 def upload_object(filename, data, length):
-    client = Minio(MINIO_API_HOST, ACCESS_KEY, SECRET_KEY, secure=True)
+    client = Minio('s3-api.root-dynamics.com', ACCESS_KEY, SECRET_KEY)
 
     # Make bucket if not exist.
     found = client.bucket_exists(BUCKET_NAME)
