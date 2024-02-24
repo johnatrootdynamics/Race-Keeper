@@ -411,12 +411,12 @@ label {
     font-weight: bold;
 }
 
-.alert.error {
+.alerterror {
     background-color: #ff4d4d; /* Red background */
     color: #ffffff; /* White text */
 }
 
-.alert.success {
+.alertsuccess {
     background-color: #4CAF50; /* Green background */
     color: #000000; /* Black text */
 }
