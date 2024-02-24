@@ -402,3 +402,21 @@ label {
 .checklist label:hover span.checkbox-custom {
     border-color: #0056b3;
 }
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.alert.error {
+    background-color: #ff4d4d; /* Red background */
+    color: #ffffff; /* White text */
+}
+
+.alert.success {
+    background-color: #4CAF50; /* Green background */
+    color: #000000; /* Black text */
+}
