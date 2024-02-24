@@ -547,14 +547,14 @@ def car_inspection():
 
 
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
-ACCESS_KEY = '604a4b8a45f4e8bcf2dd3eb5'
-SECRET_KEY = 'b31f7c0236fbcee4432b0ce0a6100b847c6114'
-BUCKET_NAME = 'oswimages'
-MINIO_API_HOST = 'https://s3.root-dynamics.com:9000'
+ACCESS_KEY = "mY9xQ0dLHLOC2qRxWjGU"
+SECRET_KEY = "GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4"
+BUCKET_NAME = "oswimages"
+MINIO_API_HOST = "http://s3-api.root-dynamics.com:9000"
 
 
 def upload_object(filename, data, length):
-    client = Minio(MINIO_API_HOST, ACCESS_KEY, SECRET_KEY, secure=True)
+    client = Minio(MINIO_API_HOST, ACCESS_KEY, SECRET_KEY, secure=False)
 
     # Make bucket if not exist.
     found = client.bucket_exists(BUCKET_NAME)
