@@ -11,8 +11,8 @@ RUN apt install -y git
 # Copy files from the cloned repository to the desired location in the Docker image
 RUN mkdir /app
 ADD https://www.google.com /time.now
-RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app/app
-WORKDIR /app/app
+RUN git clone https://github.com/johnatrootdynamics/Race-Keeper /app
+WORKDIR /app
 RUN mkdir static/uploads
 ENV VIRTUAL_ENV=/opt/venv
 COPY * /opt/venv/
@@ -25,7 +25,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Set the working directory
 #RUN pip3 install -r requirements.txt  
-RUN pip3 install flask  
+RUN pip3 install flask
+RUN pip3 install flask minio
 RUN pip3 install pypng==0.20220715.0  
 RUN pip3 install blinker==1.7.0  
 RUN pip3 install certifi==2024.2.2  
