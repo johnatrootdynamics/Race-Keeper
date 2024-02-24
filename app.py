@@ -549,7 +549,7 @@ def car_inspection():
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 ACCESS_KEY = 'mY9xQ0dLHLOC2qRxWjGU'
 SECRET_KEY = 'GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4'
-BUCKET_NAME = 'oswuploads'
+BUCKET_NAME = 'oswimages'
 MINIO_API_HOST = 'https://s3.root-dynamics.com'
 
 
