@@ -602,6 +602,7 @@ def upload_s3file():
             <input type=file name=file>
             <input type=submit value=Upload>
           </form>
+          <img src="https://s3-api.root-dynamics.com/oswimages/IMG_0483.jpeg">
         </body>
         </html>
         """
