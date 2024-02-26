@@ -18,7 +18,6 @@ app.config['MYSQL_DB'] = 'race_car_db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
 ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
 ACCESS_KEY = "mY9xQ0dLHLOC2qRxWjGU"
 SECRET_KEY = "GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4"
@@ -339,21 +338,33 @@ def add_driver():
         dclass = request.form['dclass']
 
         # Handle file upload (picture)
-        # check if the post request has the file part
-        if "file" not in request.files:
-            return redirect(request.url)
-        file = request.files["file"]
+        if 'picture' in request.files:
+            picture = request.files['picture']
+            if picture.filename != '':
+                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
+                #picture_path = secure_filename(picture.filename)
+                picture.save(picture_path)
+            else:
+                picture_path = None
+        else:
+            picture_path = None
+
+        if "file" in request.files:
+            file = request.files["file"]
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
-        if file.filename == "":
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            size = os.fstat(file.fileno()).st_size
-            upload_object(filename, file, size)
-            picture_path = MINIO_API_HOST + '/drivers/' + filename
-            return redirect(request.url)
-
+            if file.filename == "":
+                file = request.files['file']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    size = os.fstat(file.fileno()).st_size
+                    upload_object(filename, file, size)
+                else:
+                    flash('Invalid File Type','danger')
+                    picture_path = None
+            else:
+                picture_path = None
+            
         # Insert data into the 'drivers' table
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class) VALUES (%s, %s, %s, %s, %s, %s, %s)",
