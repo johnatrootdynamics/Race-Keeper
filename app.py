@@ -346,6 +346,7 @@ def add_driver():
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
                     size = os.fstat(file.fileno()).st_size
+                    picture_path = MINIO_API_HOST + '/drivers/' + filename
                     upload_object(filename, file, size)
                 else:
                     flash('Invalid File Type','danger')
