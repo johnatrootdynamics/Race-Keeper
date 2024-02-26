@@ -337,15 +337,15 @@ def add_driver():
         phone_number = request.form['phone_number']
         dclass = request.form['dclass']
 
-        if "file" in request.files:
-            file = request.files["file"]
+        if "picture" in request.files:
+            file = request.files["picture"]
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
             if file.filename != "":
-                file = request.files['file']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    size = os.fstat(file.fileno()).st_size
+                picture = request.files['picture']
+                if picture and allowed_file(file.filename):
+                    filename = secure_filename(picture.filename)
+                    size = os.fstat(picture.fileno()).st_size
                     picture_path = MINIO_API_HOST + '/drivers/' + filename
                     upload_object(filename, file, size)
                 else:
