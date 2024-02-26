@@ -19,6 +19,11 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
+ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
+ACCESS_KEY = "mY9xQ0dLHLOC2qRxWjGU"
+SECRET_KEY = "GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4"
+BUCKET_NAME = "oswimages"
+MINIO_API_HOST = "https://s3-api.root-dynamics.com"
 
 
 
@@ -318,6 +323,10 @@ def upload_file():
 
     return 'Invalid file format'
 
+
+
+
+
 @app.route('/add_driver', methods=['GET', 'POST'])
 def add_driver():
     if request.method == 'POST':
@@ -333,7 +342,7 @@ def add_driver():
         if 'picture' in request.files:
             picture = request.files['picture']
             if picture.filename != '':
-                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
+                picture_path = os.path.join(MINIO_API_HOST, '/drivers/', secure_filename(picture.filename))
                 #picture_path = secure_filename(picture.filename)
                 picture.save(picture_path)
             else:
@@ -546,11 +555,7 @@ def car_inspection():
 
 
 
-ALLOWED_EXTENSIONS = {"txt", "pdf", "png", "jpg", "jpeg", "gif"}
-ACCESS_KEY = "mY9xQ0dLHLOC2qRxWjGU"
-SECRET_KEY = "GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4"
-BUCKET_NAME = "oswimages"
-MINIO_API_HOST = "https://s3-api.root-dynamics.com"
+
 
 
 def upload_object(filename, data, length):
@@ -602,7 +607,6 @@ def upload_s3file():
             <input type=file name=file>
             <input type=submit value=Upload>
           </form>
-          <img src="https://s3-api.root-dynamics.com/oswimages/IMG_0483.jpeg">
         </body>
         </html>
         """

@@ -12,7 +12,7 @@
         <div class="profile-header"> <!-- This contains the car picture and QR code -->
             <div class="car-picture-container">
                 {% if car.picture_path %}
-                    <img src="{{ url_for('get_picture', filename=car.picture_path) }}" alt="Car Picture" class="car-picture">
+                    <img src="{{ car.picture_path }}" alt="Car Picture" class="car-picture">
                 {% else %}
                     <p>No picture available</p>
                 {% endif %}
