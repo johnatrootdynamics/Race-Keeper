@@ -329,6 +329,7 @@ def upload_file():
 @app.route('/add_driver', methods=['GET', 'POST'])
 def add_driver():
     if request.method == 'POST':
+        bucket = 'drivers'
         # Get form data
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -347,7 +348,7 @@ def add_driver():
                     filename = secure_filename(picture.filename)
                     size = os.fstat(picture.fileno()).st_size
                     picture_path = MINIO_API_HOST + '/drivers/' + filename
-                    upload_object(filename, file, size)
+                    upload_object(filename, file, size, bucket)
                 else:
                     flash('Invalid File Type','danger')
                     picture_path = None
@@ -562,18 +563,18 @@ def car_inspection():
 
 
 
-def upload_object(filename, data, length):
+def upload_object(filename, data, length, bucket):
     client = Minio('s3-api.root-dynamics.com', ACCESS_KEY, SECRET_KEY)
 
     # Make bucket if not exist.
-    found = client.bucket_exists(BUCKET_NAME)
+    found = client.bucket_exists(bucket)
     if not found:
-        client.make_bucket(BUCKET_NAME)
+        client.make_bucket(bucket)
     else:
-        print(f"Bucket {BUCKET_NAME} already exists")
+        print(f"Bucket {bucket} already exists")
 
-    client.put_object(BUCKET_NAME, filename, data, length)
-    print(f"{filename} is successfully uploaded to bucket {BUCKET_NAME}.")
+    client.put_object(bucket, filename, data, length)
+    print(f"{filename} is successfully uploaded to bucket {bucket}.")
 
 
 def allowed_file(filename):
