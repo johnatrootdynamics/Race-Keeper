@@ -341,7 +341,7 @@ def add_driver():
             file = request.files["file"]
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
-            if file.filename == "":
+            if file.filename != "":
                 file = request.files['file']
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
