@@ -342,7 +342,7 @@ def add_driver():
         if 'picture' in request.files:
             picture = request.files['picture']
             if picture.filename != '':
-                picture_path = os.path.join(MINIO_API_HOST, '/drivers/', secure_filename(picture.filename))
+                picture_path = MINIO_API_HOST + '/drivers/' + secure_filename(picture.filename)
                 #picture_path = secure_filename(picture.filename)
                 picture.save(picture_path)
             else:
