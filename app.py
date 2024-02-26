@@ -337,18 +337,6 @@ def add_driver():
         phone_number = request.form['phone_number']
         dclass = request.form['dclass']
 
-        # Handle file upload (picture)
-        if 'picture' in request.files:
-            picture = request.files['picture']
-            if picture.filename != '':
-                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
-                #picture_path = secure_filename(picture.filename)
-                picture.save(picture_path)
-            else:
-                picture_path = None
-        else:
-            picture_path = None
-
         if "file" in request.files:
             file = request.files["file"]
         # If the user does not select a file, the browser submits an
