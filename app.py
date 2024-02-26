@@ -369,22 +369,29 @@ def add_driver():
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
 def add_car(driver_id):
     if request.method == 'POST':
+        bucket = 'cars'
         # Get form data
         make = request.form['make']
         model = request.form['model']
         year = request.form['year']
         # Add other form fields
         # Handle file upload (picture)
-        if 'picture' in request.files:
-            picture = request.files['picture']
-            if picture.filename != '':
-                picture_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(picture.filename))
-                #picture_path = secure_filename(picture.filename)
-                picture.save(picture_path)
+        if "picture" in request.files:
+            file = request.files["picture"]
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+            if file.filename != "":
+                picture = request.files['picture']
+                if picture and allowed_file(file.filename):
+                    filename = secure_filename(picture.filename)
+                    size = os.fstat(picture.fileno()).st_size
+                    picture_path = MINIO_API_HOST + '/cars/' + filename
+                    upload_object(filename, file, size, bucket)
+                else:
+                    flash('Invalid File Type','danger')
+                    picture_path = None
             else:
                 picture_path = None
-        else:
-            picture_path = None
 
         
         # Insert data into database
