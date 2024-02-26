@@ -339,16 +339,20 @@ def add_driver():
         dclass = request.form['dclass']
 
         # Handle file upload (picture)
-        if 'picture' in request.files:
-            picture = request.files['picture']
-            if picture.filename != '':
-                picture_path = MINIO_API_HOST + '/drivers/' + secure_filename(picture.filename)
-                #picture_path = secure_filename(picture.filename)
-                picture.save(picture_path)
-            else:
-                picture_path = None
-        else:
-            picture_path = None
+        # check if the post request has the file part
+        if "file" not in request.files:
+            return redirect(request.url)
+        file = request.files["file"]
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == "":
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            size = os.fstat(file.fileno()).st_size
+            upload_object(filename, file, size)
+            picture_path = MINIO_API_HOST + '/drivers/' + filename
+            return redirect(request.url)
 
         # Insert data into the 'drivers' table
         cur = mysql.connection.cursor()
