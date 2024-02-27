@@ -58,7 +58,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        hashed_password = generate_password_hash(password, method='sha256')
+        hashed_password = generate_password_hash(password, method='scrypt')
 
         cursor = mysql.connection.cursor()
         cursor.execute('INSERT INTO users (username, password) VALUES (%s, %s)', (username, hashed_password))
