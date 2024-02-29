@@ -77,11 +77,11 @@ def register():
         # empty file without a filename.
             if picture.filename != "":
                 picture = request.files['picture']
-                if picture and allowed_file(file.filename):
+                if picture and allowed_file(picture.filename):
                     filename = secure_filename(picture.filename)
                     size = os.fstat(picture.fileno()).st_size
                     picture_path = MINIO_API_HOST + '/drivers/' + filename
-                    upload_object(filename, file, size, bucket)
+                    upload_object(filename, picture, size, bucket)
                 else:
                     flash('Invalid File Type','danger')
                     picture_path = 'firstnone'
