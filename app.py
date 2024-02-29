@@ -56,12 +56,41 @@ def load_user(user_id):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        bucket = 'drivers'
+        # Get form data
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        date_of_birth = request.form['date_of_birth']
+        address = request.form['address']
+        city = request.form['city']
+        state = request.form['state']
+        city = request.form['zip']
+        phone_number = request.form['phone_number']
+        dclass = request.form['dclass']
         username = request.form['username']
         password = request.form['password']
         hashed_password = generate_password_hash(password, method='scrypt')
 
+        if "picture" in request.files:
+            file = request.files["picture"]
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+            if file.filename != "":
+                picture = request.files['picture']
+                if picture and allowed_file(file.filename):
+                    filename = secure_filename(picture.filename)
+                    size = os.fstat(picture.fileno()).st_size
+                    picture_path = MINIO_API_HOST + '/drivers/' + filename
+                    upload_object(filename, file, size, bucket)
+                else:
+                    flash('Invalid File Type','danger')
+                    picture_path = None
+            else:
+                picture_path = None
+
         cursor = mysql.connection.cursor()
-        cursor.execute('INSERT INTO drivers (username, password) VALUES (%s, %s)', (username, hashed_password))
+        cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass,username, hashed_password))
         mysql.connection.commit()
         cursor.close()
         return redirect(url_for('login'))
