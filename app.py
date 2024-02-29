@@ -71,8 +71,8 @@ def register():
         password = request.form['password']
         hashed_password = generate_password_hash(password, method='scrypt')
 
-        if "picture" in request.files:
-            file = request.files["picture"]
+        if 'picture' in request.files:
+            file = request.files['picture']
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
             if file.filename != "":
@@ -84,9 +84,9 @@ def register():
                     upload_object(filename, file, size, bucket)
                 else:
                     flash('Invalid File Type','danger')
-                    picture_path = None
+                    picture_path = 'firstnone'
             else:
-                picture_path = None
+                picture_path = 'secondnone'
 
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO drivers (first_name, last_name, city, state, zip, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)",
