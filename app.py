@@ -88,11 +88,11 @@ def register():
             else:
                 picture_path = None
 
-        cursor = mysql.connection.cursor()
+        cur = mysql.connection.cursor()
         cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
         (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass,username, hashed_password))
         mysql.connection.commit()
-        cursor.close()
+        cur.close()
         return redirect(url_for('login'))
     return render_template('register.html')
 
