@@ -87,6 +87,7 @@ def register():
                     picture_path = 'firstnone'
             else:
                 picture_path = 'secondnone'
+        else: picture_path = 'thirdone'
 
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO drivers (first_name, last_name, city, state, zip, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)",
