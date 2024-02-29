@@ -46,7 +46,7 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+    cursor.execute('SELECT * FROM drivers WHERE id = %s', (user_id,))
     user = cursor.fetchone()
     cursor.close()
     if user:
@@ -61,7 +61,7 @@ def register():
         hashed_password = generate_password_hash(password, method='scrypt')
 
         cursor = mysql.connection.cursor()
-        cursor.execute('INSERT INTO users (username, password) VALUES (%s, %s)', (username, hashed_password))
+        cursor.execute('INSERT INTO drivers (username, password) VALUES (%s, %s)', (username, hashed_password))
         mysql.connection.commit()
         cursor.close()
         return redirect(url_for('login'))
@@ -74,7 +74,7 @@ def login():
         password = request.form['password']
 
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        cursor.execute('SELECT * FROM drivers WHERE username = %s', (username,))
         user = cursor.fetchone()
         cursor.close()
 
