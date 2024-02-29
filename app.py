@@ -72,10 +72,10 @@ def register():
         hashed_password = generate_password_hash(password, method='scrypt')
 
         if 'picture' in request.files:
-            file = request.files['picture']
+            picture = request.files['picture']
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
-            if file.filename != "":
+            if picture.filename != "":
                 picture = request.files['picture']
                 if picture and allowed_file(file.filename):
                     filename = secure_filename(picture.filename)
