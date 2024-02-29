@@ -64,7 +64,7 @@ def register():
         address = request.form['address']
         city = request.form['city']
         state = request.form['state']
-        city = request.form['zip']
+        zipcode = request.form['zip']
         phone_number = request.form['phone_number']
         dclass = request.form['dclass']
         username = request.form['username']
@@ -89,8 +89,8 @@ def register():
                 picture_path = None
 
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-        (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass,username, hashed_password))
+        cur.execute("INSERT INTO drivers (first_name, last_name, city, state, zip, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        (first_name, last_name, city, state, zipcode, date_of_birth, address, phone_number, picture_path, dclass,username, hashed_password))
         mysql.connection.commit()
         cur.close()
         return redirect(url_for('login'))
