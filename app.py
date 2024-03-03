@@ -165,6 +165,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 @app.route('/')
+@login_required
 def index():
     # Fetch and display list of drivers
     cur = mysql.connection.cursor()
@@ -262,6 +263,7 @@ def final_check_in():
     return redirect(url_for('check_in'))
 
 @app.route('/check_in', methods=['GET', 'POST'])
+@login_required
 def check_in():
     messages = []
     cars, events, driver_id, driver = [], get_events_for_today(), None, None
@@ -346,6 +348,7 @@ def check_in():
 
 
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
+@login_required
 def delete_driver(driver_id):
     # Check if the driver exists
     cur = mysql.connection.cursor()
@@ -375,6 +378,7 @@ def delete_driver(driver_id):
 
 
 @app.route('/car/<int:car_id>')
+@login_required
 def car_info(car_id):
     # Fetch car details
     cur = mysql.connection.cursor()
@@ -415,6 +419,7 @@ def upload_file():
 
 
 @app.route('/add_driver', methods=['GET', 'POST'])
+@login_required
 def add_driver():
     if request.method == 'POST':
         bucket = 'drivers'
@@ -455,6 +460,7 @@ def add_driver():
     return render_template('add_driver.html')
 
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
+@login_required
 def add_car(driver_id):
     if request.method == 'POST':
         bucket = 'cars'
@@ -494,6 +500,7 @@ def add_car(driver_id):
 
 
 @app.route('/delete_car/<int:car_id>/<int:driver_id>', methods=['POST', 'GET'])
+@login_required
 def delete_car(car_id,driver_id):
     cur = mysql.connection.cursor()
     driverid = driver_id
@@ -504,6 +511,7 @@ def delete_car(car_id,driver_id):
     #return redirect(url_for('index'))
 
 @app.route('/create_event', methods=['GET', 'POST'])
+@login_required
 def create_event():
     if request.method == 'POST':
         event_name = request.form['event_name']
@@ -524,6 +532,7 @@ def create_event():
 
 
 @app.route('/events')
+@login_required
 def events():
     today = datetime.now().date()
     cur = mysql.connection.cursor()
@@ -535,6 +544,7 @@ def events():
 
 
 @app.route('/event_check_ins', methods=['GET', 'POST'])
+@login_required
 def event_check_ins():
     # Fetch all events for the dropdown
     cur = mysql.connection.cursor()
@@ -576,6 +586,7 @@ def event_check_ins():
 
 
 @app.route('/car_inspection', methods=['GET', 'POST'])
+@login_required
 def car_inspection():
     messages = []  # Create an empty list to store messages
 
