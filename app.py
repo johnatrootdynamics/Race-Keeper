@@ -63,7 +63,7 @@ def logout():
 def register():
     show_role_selection = []
     show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
-    if current_user.is_authenticated and current_user.role != 'admin'
+    if current_user.is_authenticated and current_user.role != 'admin':
         abort(403)
     if request.method == 'POST':
         bucket = 'drivers'
