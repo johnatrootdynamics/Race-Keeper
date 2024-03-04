@@ -102,7 +102,7 @@ def register():
         mysql.connection.commit()
         cur.close()
         return redirect(url_for('login'))
-    return render_template('register.html' show_role_selection=show_role_selection)
+    return render_template('register.html', show_role_selection=show_role_selection)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
