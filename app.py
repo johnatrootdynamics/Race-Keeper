@@ -209,6 +209,8 @@ def car_qr_code(car_id):
 
 @app.route('/driver/<int:driver_id>', methods=['GET', 'POST'])
 def driver_profile(driver_id):
+    if current_user.id != driver_id or current_user.role != 'admin':
+        abort(403)
     if request.method == 'POST':
         # Handle adding a new note
         note_text = request.form.get('note_text')
