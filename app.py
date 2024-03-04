@@ -39,9 +39,10 @@ login_manager.login_view = 'login'
 
 
 class User(UserMixin):
-    def __init__(self, id, username):
+    def __init__(self, id, username, role):
         self.id = id
         self.username = username
+        self.role = role
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -50,7 +51,7 @@ def load_user(user_id):
     user = cursor.fetchone()
     cursor.close()
     if user:
-        return User(id=user['id'], username=user['username'])
+        return User(id=user['id'], username=user['username'], role=user['role'])
     return None
 
 @app.route('/logout')
