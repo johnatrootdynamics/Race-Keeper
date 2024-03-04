@@ -185,6 +185,7 @@ def index():
 
 @app.route('/driver_qr/<int:driver_id>')
 def driver_qr_code(driver_id):
+    show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
     # Assuming you have a function to get the driver's data
     driver_data = get_driver_data(driver_id)
 
@@ -197,6 +198,8 @@ def driver_qr_code(driver_id):
 
 @app.route('/car_qr/<int:car_id>')
 def car_qr_code(car_id):
+    if current_user.id != driver_id and current_user.role != 'admin':
+        abort(403)  
     # Assuming you have a function to get the driver's data
     car_data = get_car_data(car_id)
 
@@ -238,6 +241,8 @@ def driver_profile(driver_id):
 
 @app.route('/final_check_in', methods=['POST'])
 def final_check_in():
+    if current_user.id != driver_id and current_user.role != 'admin':
+        abort(403)
     driver_id = request.form.get('driver_id')
     car_id = request.form.get('car_id')
     event_id = request.form.get('event_id')
@@ -275,6 +280,8 @@ def final_check_in():
 @app.route('/check_in', methods=['GET', 'POST'])
 @login_required
 def check_in():
+    if current_user.role != 'admin':
+        abort(403)
     messages = []
     cars, events, driver_id, driver = [], get_events_for_today(), None, None
     if request.method == 'POST' and 'driver_id' in request.form:
@@ -360,6 +367,8 @@ def check_in():
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
 @login_required
 def delete_driver(driver_id):
+    if current_user.id != driver_id and current_user.role != 'admin':
+        abort(403)
     # Check if the driver exists
     cur = mysql.connection.cursor()
     cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
@@ -390,6 +399,8 @@ def delete_driver(driver_id):
 @app.route('/car/<int:car_id>')
 @login_required
 def car_info(car_id):
+    if current_user.id != driver_id and current_user.role != 'admin':
+        abort(403)
     # Fetch car details
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM cars WHERE id = %s", (car_id,))
@@ -428,50 +439,52 @@ def upload_file():
 
 
 
-@app.route('/add_driver', methods=['GET', 'POST'])
-@login_required
-def add_driver():
-    if request.method == 'POST':
-        bucket = 'drivers'
-        # Get form data
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        date_of_birth = request.form['date_of_birth']
-        address = request.form['address']
-        phone_number = request.form['phone_number']
-        dclass = request.form['dclass']
+# @app.route('/add_driver', methods=['GET', 'POST'])
+# @login_required
+# def add_driver():
+#     if request.method == 'POST':
+#         bucket = 'drivers'
+#         # Get form data
+#         first_name = request.form['first_name']
+#         last_name = request.form['last_name']
+#         date_of_birth = request.form['date_of_birth']
+#         address = request.form['address']
+#         phone_number = request.form['phone_number']
+#         dclass = request.form['dclass']
 
-        if "picture" in request.files:
-            file = request.files["picture"]
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
-            if file.filename != "":
-                picture = request.files['picture']
-                if picture and allowed_file(file.filename):
-                    filename = secure_filename(picture.filename)
-                    size = os.fstat(picture.fileno()).st_size
-                    picture_path = MINIO_API_HOST + '/drivers/' + filename
-                    upload_object(filename, file, size, bucket)
-                else:
-                    flash('Invalid File Type','danger')
-                    picture_path = None
-            else:
-                picture_path = None
+#         if "picture" in request.files:
+#             file = request.files["picture"]
+#         # If the user does not select a file, the browser submits an
+#         # empty file without a filename.
+#             if file.filename != "":
+#                 picture = request.files['picture']
+#                 if picture and allowed_file(file.filename):
+#                     filename = secure_filename(picture.filename)
+#                     size = os.fstat(picture.fileno()).st_size
+#                     picture_path = MINIO_API_HOST + '/drivers/' + filename
+#                     upload_object(filename, file, size, bucket)
+#                 else:
+#                     flash('Invalid File Type','danger')
+#                     picture_path = None
+#             else:
+#                 picture_path = None
             
-        # Insert data into the 'drivers' table
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass))
-        mysql.connection.commit()
-        cur.close()
+#         # Insert data into the 'drivers' table
+#         cur = mysql.connection.cursor()
+#         cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+#                     (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass))
+#         mysql.connection.commit()
+#         cur.close()
 
-        return redirect(url_for('index'))
+#         return redirect(url_for('index'))
 
-    return render_template('add_driver.html')
+#     return render_template('add_driver.html')
 
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
 @login_required
 def add_car(driver_id):
+    if current_user.id != driver_id and current_user.role != 'admin':
+        abort(403)
     if request.method == 'POST':
         bucket = 'cars'
         # Get form data
@@ -512,6 +525,8 @@ def add_car(driver_id):
 @app.route('/delete_car/<int:car_id>/<int:driver_id>', methods=['POST', 'GET'])
 @login_required
 def delete_car(car_id,driver_id):
+    if current_user.id != driver_id and current_user.role != 'admin':
+        abort(403)
     cur = mysql.connection.cursor()
     driverid = driver_id
     cur.execute("DELETE FROM cars WHERE id = %s", (car_id,))
@@ -523,6 +538,8 @@ def delete_car(car_id,driver_id):
 @app.route('/create_event', methods=['GET', 'POST'])
 @login_required
 def create_event():
+    if current_user.role != 'admin':
+        abort(403)
     if request.method == 'POST':
         event_name = request.form['event_name']
         event_date = request.form['event_date']
@@ -544,6 +561,8 @@ def create_event():
 @app.route('/events')
 @login_required
 def events():
+    if current_user.role != 'admin':
+        abort(403)
     today = datetime.now().date()
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM events WHERE event_date = %s", (today,))
@@ -556,6 +575,8 @@ def events():
 @app.route('/event_check_ins', methods=['GET', 'POST'])
 @login_required
 def event_check_ins():
+    if current_user.role != 'admin':
+        abort(403)
     # Fetch all events for the dropdown
     cur = mysql.connection.cursor()
     cur.execute("SELECT id, event_name FROM events")
@@ -598,6 +619,8 @@ def event_check_ins():
 @app.route('/car_inspection', methods=['GET', 'POST'])
 @login_required
 def car_inspection():
+    if current_user.role != 'admin':
+        abort(403)
     messages = []  # Create an empty list to store messages
 
     if request.method == 'POST':
@@ -696,41 +719,6 @@ def upload_object(filename, data, length, bucket):
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-@app.route("/minio", methods=["GET", "POST"])
-def upload_s3file():
-    if request.method == "POST":
-        # check if the post request has the file part
-        if "file" not in request.files:
-            return redirect(request.url)
-        file = request.files["file"]
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
-        if file.filename == "":
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            size = os.fstat(file.fileno()).st_size
-            upload_object(filename, file, size)
-            return redirect(request.url)
-
-    return """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>UPLOAD</title>
-        </head>
-        <body>
-          <h1>Upload File</h1>
-          <form method=post enctype=multipart/form-data>
-            <input type=file name=file>
-            <input type=submit value=Upload>
-          </form>
-        </body>
-        </html>
-        """
 
 
 
