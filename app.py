@@ -53,6 +53,11 @@ def load_user(user_id):
         return User(id=user['id'], username=user['username'])
     return None
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
