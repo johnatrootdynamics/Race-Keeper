@@ -60,8 +60,8 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-        show_role_selection = []
-        show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
+    show_role_selection = []
+    show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
     if request.method == 'POST':
         bucket = 'drivers'
         # Get form data
