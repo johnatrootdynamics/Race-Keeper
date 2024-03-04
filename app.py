@@ -75,7 +75,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         hashed_password = generate_password_hash(password, method='scrypt')
-
+        show_role_selection = []
         show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
 
         if 'picture' in request.files:
