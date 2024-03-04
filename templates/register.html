@@ -16,6 +16,15 @@
             <h2 class="text-center">Register</h2>
             <form action="{{ url_for('register') }}" method="post" enctype="multipart/form-data" class="p-4 shadow rounded-lg bg-white">
                 <h2 class="text-center mb-4">Registration Form</h2>
+                {% if show_role_selection %}
+                <div class="form-group">
+                    <label for="role">Role:</label>
+                    <select name="role" id="role" class="form-control">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                {% endif %}
                 <!-- Username -->
                 <div class="form-group">
                     <label for="username">Username:</label>

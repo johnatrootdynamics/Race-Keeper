@@ -76,6 +76,8 @@ def register():
         password = request.form['password']
         hashed_password = generate_password_hash(password, method='scrypt')
 
+        show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
+
         if 'picture' in request.files:
             picture = request.files['picture']
         # If the user does not select a file, the browser submits an
@@ -100,7 +102,7 @@ def register():
         mysql.connection.commit()
         cur.close()
         return redirect(url_for('login'))
-    return render_template('register.html')
+    return render_template('register.html' show_role_selection=show_role_selection)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
