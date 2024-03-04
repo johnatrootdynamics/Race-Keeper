@@ -117,7 +117,7 @@ def login():
         cursor.close()
 
         if user and check_password_hash(user['password'], password):
-            user_obj = User(id=user['id'], username=user['username'])
+            user_obj = User(id=user['id'], username=user['username'], role=user['role'])
             login_user(user_obj)
             return redirect(url_for('index'))
         else:
