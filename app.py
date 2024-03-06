@@ -401,7 +401,7 @@ def delete_driver(driver_id):
 @app.route('/car/<int:car_id>')
 @login_required
 def car_info(car_id):
-    if current_user.id != car.driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     # Fetch car details
     cur = mysql.connection.cursor()
