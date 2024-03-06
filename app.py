@@ -200,7 +200,7 @@ def driver_qr_code(driver_id):
 
 @app.route('/car_qr/<int:car_id>')
 def car_qr_code(car_id):
-    if current_user.id != driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)  
     # Assuming you have a function to get the driver's data
     car_data = get_car_data(car_id)
@@ -214,7 +214,7 @@ def car_qr_code(car_id):
 
 @app.route('/driver/<int:driver_id>', methods=['GET', 'POST'])
 def driver_profile(driver_id):
-    if current_user.id != driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     if request.method == 'POST':
         # Handle adding a new note
@@ -243,7 +243,7 @@ def driver_profile(driver_id):
 
 @app.route('/final_check_in', methods=['POST'])
 def final_check_in():
-    if current_user.id != driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     driver_id = request.form.get('driver_id')
     car_id = request.form.get('car_id')
@@ -369,7 +369,7 @@ def check_in():
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
 @login_required
 def delete_driver(driver_id):
-    if current_user.id != driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     # Check if the driver exists
     cur = mysql.connection.cursor()
@@ -485,7 +485,7 @@ def upload_file():
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
 @login_required
 def add_car(driver_id):
-    if current_user.id != driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     if request.method == 'POST':
         bucket = 'cars'
@@ -527,7 +527,7 @@ def add_car(driver_id):
 @app.route('/delete_car/<int:car_id>/<int:driver_id>', methods=['POST', 'GET'])
 @login_required
 def delete_car(car_id,driver_id):
-    if current_user.id != driver_id and current_user.role != 'admin':
+    if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     cur = mysql.connection.cursor()
     driverid = driver_id
