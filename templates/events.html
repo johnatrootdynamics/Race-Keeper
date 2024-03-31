@@ -18,6 +18,30 @@
           </div>
         </div>
       </nav>
+      <div class="container profile-container">
+        {% if events %}
+        <h1 class="title">Events</h1>
+        <table id=" eventsTable" class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>{{ event.event_name }}</td>
+                        <td>{{ event.event_date }}</td>
+                        <td><a href="{{ url_for('event_check_ins', event_id=event.id) }}">View Profile</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p> no events yet</p>
+        {% endif %}
         <div class="button-container">
             <a href="{{ url_for('register') }}"><button class="add-driver-button">Add Driver</button></a>
             <a href="{{ url_for('check_in') }}"><button>Check In</button></a>
@@ -47,7 +71,7 @@
 
     <script>
         $(document).ready(function() {
-            $('#driversTable').DataTable();
+            $('# eventsTable').DataTable();
         });
     </script>
 </body>
