@@ -78,13 +78,12 @@
             <p>No check-ins found for the selected event.</p>
         {% endif %}
         <div class="button-container">
+            <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
             <a href="{{ url_for('register') }}"><button class="add-driver-button">Add Driver</button></a>
             <a href="{{ url_for('check_in') }}"><button>Check In</button></a>
             <a href="{{ url_for('events') }}"><button class="events-button">Events</button></a>
-            <a href="{{ url_for('event_check_ins') }}">
-            <a href="/logout" class="btn btn-danger">Logout</a>
-            </a>
             <a href="{{ url_for('car_inspection') }}"><button class="inspection-button">Car Inspection</button></a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
             <!-- Add other buttons for navigation -->
         </div>
     </div>
