@@ -392,7 +392,26 @@ def delete_driver(driver_id):
         return "Driver not found"
 
 
+@app.route('/delete_event/<int:event_id>', methods=['POST'])
+@login_required
+def delete_event(event_id):
+    if current_user.id != current_user.id and current_user.role != 'admin':
+        abort(403)
+    # Check if the driver exists
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id FROM events WHERE id = %s", (event_id,))
+    existing_event = cur.fetchone()
 
+    if existing_event:
+        # Delete check-in data associated with the driver
+        cur.execute("DELETE FROM check_ins WHERE event_id = %s", (event_id,))
+        cur.execute("DELETE FROM events WHERE id = %s", (event_id,))
+        mysql.connection.commit()
+        cur.close()
+
+        return redirect(url_for('events'))
+    else:
+        return "Event not found"
 
 
 
