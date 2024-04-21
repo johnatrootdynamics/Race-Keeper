@@ -575,11 +575,10 @@ def events():
 
 
 
-@app.route('/event_check_ins', defaults={'event_id': None}, methods=['GET', 'POST'])
+@app.route('/event_check_ins', methods=['GET', 'POST'])
 @login_required
 def event_check_ins():
     event_id = request.args.get('event_id', None)
-    
     if current_user.role != 'admin':
         abort(403)
     # Fetch all events for the dropdown
