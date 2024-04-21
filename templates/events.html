@@ -36,6 +36,7 @@
                         <td>{{ event.event_date }}</td>
                         <td><form method="POST" action="{{ url_for('delete_event', event_id=event.id) }}" onsubmit="return confirm('Are you sure you want to delete this Event?');">
                         <button type="submit" class="delete-event-button">Delete Event</button></td>
+                        </form>
                     </tr>
                 {% endfor %}
             </tbody>
