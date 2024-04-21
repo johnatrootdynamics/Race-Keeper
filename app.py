@@ -605,15 +605,15 @@ def event_check_ins():
             JOIN drivers ON check_ins.driver_id = drivers.id
             LEFT JOIN car_inspections ON check_ins.car_id = car_inspections.car_id
             WHERE check_ins.event_id = %s
-        """, (selected_event_id,))
+        """, (passed_event_id,))
         check_ins = cur.fetchall()
         cur.close()
 
         for check_in in check_ins:
             hello = "hello"
-        return render_template('event_check_ins.html', check_ins=check_ins, events=events, selected_event_id=selected_event_id)
+        return render_template('event_check_ins.html', check_ins=check_ins, events=events, passed_event_id=passed_event_id)
     
-    
+
     if request.method == 'POST':
         selected_event_id = int(request.form.get('event_id'))
 
