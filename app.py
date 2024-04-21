@@ -578,7 +578,10 @@ def events():
 @app.route('/event_check_ins', methods=['GET', 'POST'])
 @login_required
 def event_check_ins():
-    event_id = request.args.get('event_id', None)
+    passed_event_id = request.args.get('event_id', None)
+
+
+    
     if current_user.role != 'admin':
         abort(403)
     # Fetch all events for the dropdown
@@ -589,7 +592,28 @@ def event_check_ins():
 
     selected_event_id = None
     messages = []
+    if passed_event_id:
+        event_id = passed_event_id
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT DISTINCT
+                drivers.first_name,
+                drivers.last_name,
+                check_ins.check_in_time,
+                car_inspections.inspection_status
+            FROM check_ins
+            JOIN drivers ON check_ins.driver_id = drivers.id
+            LEFT JOIN car_inspections ON check_ins.car_id = car_inspections.car_id
+            WHERE check_ins.event_id = %s
+        """, (selected_event_id,))
+        check_ins = cur.fetchall()
+        cur.close()
 
+        for check_in in check_ins:
+            hello = "hello"
+        return render_template('event_check_ins.html', check_ins=check_ins, events=events, selected_event_id=selected_event_id)
+    
+    
     if request.method == 'POST':
         selected_event_id = int(request.form.get('event_id'))
 
