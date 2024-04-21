@@ -576,6 +576,7 @@ def events():
 
 
 @app.route('/event_check_ins', methods=['GET', 'POST'])
+@app.route('/event_check_ins/<event_id>', methods=['GET', 'POST'])
 @login_required
 def event_check_ins(event_id):
     if current_user.role != 'admin':
