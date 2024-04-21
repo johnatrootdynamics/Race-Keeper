@@ -24,6 +24,7 @@
         <table id="driversTable" class="table">
             <thead class="thead-dark">
                 <tr>
+                    <th>Class</th>
                     <th>First Name</th>
                     <th>Last Name</th>
                     <th>Actions</th>
@@ -32,6 +33,7 @@
             <tbody>
                 {% for driver in drivers %}
                     <tr>
+                        <td>{{ driver.class }}</td>
                         <td>{{ driver.first_name }}</td>
                         <td>{{ driver.last_name }}</td>
                         <td><a href="{{ url_for('driver_profile', driver_id=driver.id) }}">View Profile</a></td>
