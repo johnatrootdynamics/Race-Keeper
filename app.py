@@ -776,7 +776,7 @@ def register_run():
         car_id = request.form['car_id']
 
         # Check if the car passed inspection for the event
-        cursor.execute('SELECT 1 FROM inspections WHERE car_id = %s AND event_id = %s AND status = "passed"', (car_id, event_id))
+        cursor.execute('SELECT * FROM car_inspections WHERE car_id = %s AND event_id = %s AND inspection_status = "Passed"', (car_id, event_id))
         passed_inspection = cursor.fetchone()
         
         if passed_inspection:
@@ -788,7 +788,7 @@ def register_run():
         return redirect(url_for('register_run'))
     
     # Fetch events for today to populate the dropdown
-    cursor.execute('SELECT id, name FROM events WHERE DATE(event_date) = CURDATE()')
+    cursor.execute('SELECT id, event_name FROM events WHERE DATE(event_date) = CURDATE()')
     events = cursor.fetchall()
     cursor.close()
     return render_template('laps.html', events=events)
