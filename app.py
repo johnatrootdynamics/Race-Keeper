@@ -768,7 +768,30 @@ def allowed_file(filename):
 
 
 
+@app.route('/register_run', methods=['GET', 'POST'])
+def register_run():
+    cursor = mysql.connection.cursor()
+    if request.method == 'POST':
+        event_id = session.get('event_id', request.form['event_id'])
+        car_id = request.form['car_id']
 
+        # Check if the car passed inspection for the event
+        cursor.execute('SELECT 1 FROM inspections WHERE car_id = %s AND event_id = %s AND status = "passed"', (car_id, event_id))
+        passed_inspection = cursor.fetchone()
+        
+        if passed_inspection:
+            # Insert car run
+            cursor.execute('INSERT INTO car_runs (car_id, event_id, start_time) VALUES (%s, %s, %s)', (car_id, event_id, datetime.now()))
+            mysql.connection.commit()
+        else:
+            return "Car has not passed inspection for this event.", 400
+        return redirect(url_for('register_run'))
+    
+    # Fetch events for today to populate the dropdown
+    cursor.execute('SELECT id, name FROM events WHERE DATE(event_date) = CURDATE()')
+    events = cursor.fetchall()
+    cursor.close()
+    return render_template('laps.html', events=events)
 
 
     
