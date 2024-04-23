@@ -783,8 +783,9 @@ def register_run():
             # Insert car run
             cursor.execute('INSERT INTO car_runs (car_id, event_id, start_time) VALUES (%s, %s, %s)', (car_id, event_id, datetime.now()))
             mysql.connection.commit()
+            flash('Recorded.', 'success')
         else:
-            return "Car has not passed inspection for this event.", 400
+            flash('Car has not passed inspection for this event.', 'danger')
         return redirect(url_for('register_run'))
     
     # Fetch events for today to populate the dropdown

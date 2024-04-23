@@ -15,8 +15,15 @@
           </div>
         </div>
     </nav>
-    <div class="container profile-container"></div>
+    <div class="container profile-container">
         <h1>Register Car Run</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
         <form action="" method="post">
             <label for="event_id">Select Event:</label>
             <select name="event_id" id="event_id" onchange="this.form.submit()">
