@@ -11,7 +11,7 @@
         <label for="event_id">Select Event:</label>
         <select name="event_id" id="event_id" onchange="this.form.submit()">
             {% for event in events %}
-            <option value="{{ event['id'] }}" {% if event['id'] == session.get('event_id') %}selected{% endif %}>{{ event['name'] }}</option>
+            <option value="{{ event['id'] }}" {% if event['id'] == session.get('event_id') %}selected{% endif %}>{{ event['event_name'] }}</option>
             {% endfor %}
         </select>
 
