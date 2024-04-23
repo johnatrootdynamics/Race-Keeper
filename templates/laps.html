@@ -6,19 +6,40 @@
     <title>Register Run</title>
 </head>
 <body>
-    <h1>Register Car Run</h1>
-    <form action="" method="post">
-        <label for="event_id">Select Event:</label>
-        <select name="event_id" id="event_id" onchange="this.form.submit()">
-            {% for event in events %}
-            <option value="{{ event['id'] }}" {% if event['id'] == session.get('event_id') %}selected{% endif %}>{{ event['event_name'] }}</option>
-            {% endfor %}
-        </select>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid justify-content-center">
+          <div class="navbar-text">
+            Logged in as: <strong>{{ current_user.username }}</strong>
+          </div>
+        </div>
+    </nav>
+    <div class="container profile-container"></div>
+        <h1>Register Car Run</h1>
+        <form action="" method="post">
+            <label for="event_id">Select Event:</label>
+            <select name="event_id" id="event_id" onchange="this.form.submit()">
+                {% for event in events %}
+                <option value="{{ event['id'] }}" {% if event['id'] == session.get('event_id') %}selected{% endif %}>{{ event['event_name'] }}</option>
+                {% endfor %}
+            </select>
 
-        <label for="car_id">Enter Car ID:</label>
-        <input type="text" id="car_id" name="car_id" required>
+            <label for="car_id">Enter Car ID:</label>
+            <input type="text" id="car_id" name="car_id" required>
 
-        <button type="submit">Submit</button>
-    </form>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div class="footer">
+        <p>© 2024 Your Web App. All rights reserved.</p>
+    </div>
+            <!-- Bootstrap JS and jQuery -->
+            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        
+            <!-- DataTables JS and CSS -->
+            <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 </body>
 </html>
