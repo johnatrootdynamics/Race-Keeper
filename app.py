@@ -771,6 +771,7 @@ def allowed_file(filename):
 @app.route('/register_run', methods=['GET', 'POST'])
 def register_run():
     cursor = mysql.connection.cursor()
+    today = datetime.now().date()
     if request.method == 'POST':
         event_id = session.get('event_id', request.form['event_id'])
         car_id = request.form['car_id']
@@ -789,7 +790,7 @@ def register_run():
         return redirect(url_for('register_run'))
     
     # Fetch events for today to populate the dropdown
-    cursor.execute('SELECT id, event_name FROM events WHERE DATE(event_date) = CURDATE()')
+    cursor.execute('SELECT id, event_name FROM events WHERE DATE(event_date) = %s',(today))
     events = cursor.fetchall()
     cursor.close()
     return render_template('laps.html', events=events)
