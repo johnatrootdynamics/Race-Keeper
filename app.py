@@ -781,8 +781,10 @@ def register_run():
         passed_inspection = cursor.fetchone()
         
         if passed_inspection:
+            current_time = datetime.now()
+            f_time = current_time.strftime('%H:%M:%S')
             # Insert car run
-            cursor.execute('INSERT INTO car_runs (car_id, event_id, start_time) VALUES (%s, %s, %s)', (car_id, event_id, datetime.now()))
+            cursor.execute('INSERT INTO car_runs (car_id, event_id, start_time) VALUES (%s, %s, %s)', (car_id, event_id, f_time))
             mysql.connection.commit()
             flash('Recorded.', 'success')
         else:
