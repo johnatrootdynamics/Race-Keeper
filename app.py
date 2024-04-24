@@ -790,7 +790,7 @@ def register_run():
         return redirect(url_for('register_run'))
     
     # Fetch events for today to populate the dropdown
-    cursor.execute('SELECT id, event_name FROM events WHERE DATE(event_date) = %s',(today))
+    cursor.execute('SELECT id, event_name FROM events WHERE DATE(event_date) = %s',(today,))
     events = cursor.fetchall()
     cursor.close()
     return render_template('laps.html', events=events)
