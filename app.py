@@ -770,6 +770,8 @@ def allowed_file(filename):
 
 @app.route('/register_run', methods=['GET', 'POST'])
 def register_run():
+    if current_user.role != 'admin':
+        abort(403)
     cursor = mysql.connection.cursor()
     today = datetime.now().date()
     if request.method == 'POST':

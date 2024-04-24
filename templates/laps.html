@@ -35,8 +35,11 @@
             <label for="car_id">Enter Car ID:</label>
             <input type="text" name="car_id" id="car_id" class="car-id-input" required>
             <button type="button" id="scanQRButton">Scan QR Code</button>
+        </br>
             <div style="width: 500px" id="qr-reader"></div>
+        </br>
             <div id="qr-reader-results"></div>
+        </br>
             <button type="submit">Submit</button>
         </form>
         <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
