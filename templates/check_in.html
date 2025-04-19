@@ -1,119 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Driver Check In</title>
-    <!-- Include your CSS files here -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Driver Check‑In</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        /* ---------- Page background ---------- */
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---------- Wrapper ---------- */
+        .check-wrapper {
+            flex: 1 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* ---------- Card ---------- */
+        .check-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ---------- QR Reader Box ---------- */
+        #qr-reader {
+            max-width: 500px;
+            margin: 1rem auto 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Driver Check - In </h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <form action="{{ url_for('check_in') }}" method="post">
-            <div class="input-container"></div>
-                <label for="driver_id">Driver ID:</label>
-                <input type="text" id="driver_id" name="driver_id" required>
-                <button type="button" id="scanQRButton">Scan QR Code</button>  
-            <div style="width: 500px" id="qr-reader"></div>
-            <div id="qr-reader-results"></div>
-        </br>
-            <button type="submit">Look Up</button>
-        </form>
-        {% if driver_id %}
-            <h1 id="drivername"> {{ driver.first_name }} {{ driver.last_name }}</h1>
-            <form action="{{ url_for('final_check_in') }}" method="post">
-                <input type="hidden" name="driver_id" value="{{ driver_id }}">
-                
-                <label for="car_id">Select a Car:</label>
-                <select id="car_id" name="car_id" required>
-                    {% for car in cars %}
-                        <option value="{{ car.id }}">{{ car.make }} {{ car.model }}</option>
-                    {% endfor %}
-                </select>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid justify-content-center">
+            <span class="navbar-text">
+                Logged in as: <strong>{{ current_user.username }}</strong>
+            </span>
+        </div>
+    </nav>
 
-                <label for="event_id">Select an Event:</label>
-                <select id="event_id" name="event_id" required>
-                    {% for event in events %}
-                        <option value="{{ event.id }}">{{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}</option>
-                    {% endfor %}
-                </select>
+    <main class="check-wrapper container">
+        <div class="card check-card p-4">
+            <h2 class="text-center mb-4">Driver Check‑In</h2>
 
-                <button type="submit">Check-In</button>
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Lookup form -->
+            <form action="{{ url_for('check_in') }}" method="post" class="needs-validation" novalidate>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control form-control-lg" placeholder="Driver ID" id="driver_id" name="driver_id" required />
+                    <button class="btn btn-outline-primary" type="button" id="scanQRButton">Scan QR</button>
+                </div>
+                <div id="qr-reader" class="d-none"></div>
+                <button type="submit" class="btn btn-primary w-100">Look Up</button>
             </form>
-        {% endif %}
-        <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
-    </div>
-</div>
 
-    <button type="button" id="checkInButton" style="display: none;">Check-In</button>
+            {% if driver_id %}
+            <hr class="my-4" />
+            <h3 class="text-center mb-3">{{ driver.first_name }} {{ driver.last_name }}</h3>
+            <form action="{{ url_for('final_check_in') }}" method="post" class="row g-3 needs-validation" novalidate>
+                <input type="hidden" name="driver_id" value="{{ driver_id }}" />
 
-<!-- Back to Home link -->
+                <div class="col-md-6">
+                    <label for="car_id" class="form-label">Select a Car</label>
+                    <select id="car_id" name="car_id" class="form-select" required>
+                        {% for car in cars %}
+                            <option value="{{ car.id }}">{{ car.make }} {{ car.model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-<!-- JavaScript to show/hide elements and enable Check-In button -->
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Initialize elements from the document
-        const scanQRButton = document.getElementById("scanQRButton");
-        const driverIdInput = document.getElementById("driver_id");
-        const qrReader = new Html5Qrcode("qr-reader");
-        
-        // Handle QR code scanning
-        scanQRButton.addEventListener("click", () => {
-            qrReader.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: 250 },
-                (decodedText, decodedResult) => {
-                    // Populate the driver_id input with the scanned text
-                    // driverIdInput.value = decodedText; 
-                    const driveridmatch = decodedText.match(/Driver-ID:\s*(\S+)/i);
+                <div class="col-md-6">
+                    <label for="event_id" class="form-label">Select an Event</label>
+                    <select id="event_id" name="event_id" class="form-select" required>
+                        {% for event in events %}
+                            <option value="{{ event.id }}">{{ event.event_name }} - {{ event.event_date.strftime('%Y-%m-%d') }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success w-100">Check‑In</button>
+                </div>
+            </form>
+            {% endif %}
 
-                    if (driveridmatch) {
-                        const drivrid = driveridmatch[1].trim();
-                        driverIdInput.value = drivrid;
-                    } else {
-                        console.error('Car-ID not found in QR code.');
-                    }
+            <div class="d-grid gap-2 mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+        </div>
+    </main>
 
+    <!-- Footer -->
+    <footer class="footer mt-auto text-center">
+        <p>© 2024 Your Web App. All rights reserved.</p>
+    </footer>
 
-                    // Stop the QR scanner
-                    qrReader.stop().catch(err => console.error('Error stopping QR scanner:', err));
-                },
-                (error) => console.error('Error decoding QR code:', error)
-            ).catch(err => console.error('Error starting QR scanner:', err));
-        });
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        // QR code logic + Bootstrap validation
+        document.addEventListener('DOMContentLoaded', () => {
+            const scanBtn = document.getElementById('scanQRButton');
+            const qrReaderElem = document.getElementById('qr-reader');
+            const driverField = document.getElementById('driver_id');
+            let qrScanner;
 
-        // Example of showing/hiding elements based on actions, adjust as needed
-        const lookupButton = document.getElementById('lookupButton'); // Adjust this ID based on your actual button for looking up driver ID
-        const carList = document.getElementById("carList"); // Ensure you have an element with this ID when cars are listed
-        const eventList = document.getElementById("eventList"); // Ensure you have an element with this ID for event selection
-        const checkInButton = document.getElementById("checkInButton"); // If you have a button for final check-in action
+            scanBtn.addEventListener('click', () => {
+                // Lazy‑init scanner
+                if (!qrScanner) {
+                    qrScanner = new Html5Qrcode('qr-reader');
+                }
 
-        // Example event listener for lookupButton, showing carList and eventList
-        if (lookupButton) {
-            lookupButton.addEventListener("click", () => {
-                if (drivername) drivername.style.display = "block";
-                if (carList) carList.style.display = "block";
-                if (eventList) eventList.style.display = "block";
-                if (checkInButton) checkInButton.style.display = "block";
+                qrReaderElem.classList.remove('d-none');
+                qrScanner.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: 250 },
+                    (decodedText) => {
+                        const match = decodedText.match(/Driver-ID:\s*(\S+)/i);
+                        driverField.value = match ? match[1].trim() : decodedText.trim();
+                        qrScanner.stop();
+                        qrReaderElem.classList.add('d-none');
+                    },
+                    (err) => console.error(err)
+                ).catch(console.error);
             });
-        }
-    });
-</script>
 
-
-
-    <!-- Include your JavaScript files here -->
+            // Bootstrap form validation
+            (() => {
+                'use strict';
+                const forms = document.querySelectorAll('.needs-validation');
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', event => {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            })();
+        });
+    </script>
 </body>
 </html>
