@@ -11,6 +11,24 @@
     <title>Add Driver</title>
 </head>
 <body>
+        <!-- Navbar -->
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
+  <div class="container-fluid">
+    <!-- profile‑picture button -->
+    <a href="{{ url_for('driver_profile', driver_id=current_user.id) }}"
+       class="navbar-brand d-flex align-items-center p-0 me-auto">
+      <img src="{{ driver[0].picture_path }}"
+           alt="Profile"
+           class="rounded-circle border border-2 border-white shadow-sm"
+           style="width:40px;height:40px;object-fit:cover;">
+    </a>
+
+    <span class="navbar-text ms-auto">
+      Logged in as: <strong>{{ current_user.username }}</strong>
+    </span>
+  </div>
+</nav>
     <div class="container profile-container">
         <h1 class="title">Add Driver</h1>
         <form class="add-driver-form" method="POST" action="{{ url_for('add_driver') }}" enctype="multipart/form-data">
