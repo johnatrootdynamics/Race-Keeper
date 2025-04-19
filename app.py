@@ -724,7 +724,7 @@ def car_inspection():
                 else:
                     messages.append("Car has already passed inspection for this event.")
             else:
-                messages.append("Driver is not checked in for the selected event. Please <a href="$URL/checkin"/>Go here</a> to check in")
+                messages.append("Driver is not checked in for the selected event. Please put a link here to check in")
         else:
             messages.append("Car not found.")
 
