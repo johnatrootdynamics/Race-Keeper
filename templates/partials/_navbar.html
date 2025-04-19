@@ -1,1 +1,16 @@
+<!-- templates/partials/_navbar.html -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
+  <div class="container-fluid">
+    <a href="{{ url_for('driver_profile', driver_id=current_user.id) }}"
+       class="navbar-brand d-flex align-items-center p-0 me-auto">
+      <img src="{{ profile_pic_url }}"
+           alt="Profile"
+           class="rounded-circle border border-2 border-white shadow-sm"
+           style="width:40px;height:40px;object-fit:cover;">
+    </a>
 
+    <span class="navbar-text ms-auto">
+      Logged in as: <strong>{{ current_user.username }}</strong>
+    </span>
+  </div>
+</nav>
