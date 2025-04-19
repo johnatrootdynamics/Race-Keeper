@@ -37,7 +37,19 @@ login_manager.login_view = 'login'
 
 
 
-
+#To pull profile picture for navbar
+@app.context_processor
+def inject_profile_pic():
+    fallback = url_for("static", filename="img/default_profile.png")
+    if current_user.is_authenticated:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT picture_path FROM drivers WHERE id = %s", (current_user.id,))
+        row = cur.fetchone()
+        cur.close()
+        if row and row["picture_path"]:
+            return dict(profile_pic_url=row["picture_path"])
+    return dict(profile_pic_url=fallback)
+    
 class User(UserMixin):
     def __init__(self, id, username, role):
         self.id = id
@@ -800,18 +812,7 @@ def register_run():
     return render_template('laps.html', events=events)
 
 
-#To pull profile picture for navbar
-@app.context_processor
-def inject_profile_pic():
-    fallback = url_for("static", filename="img/default_profile.png")
-    if current_user.is_authenticated:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT picture_path FROM drivers WHERE id = %s", (current_user.id,))
-        row = cur.fetchone()
-        cur.close()
-        if row and row["picture_path"]:
-            return dict(profile_pic_url=row["picture_path"])
-    return dict(profile_pic_url=fallback)
+
 
     
 if __name__ == '__main__':
