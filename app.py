@@ -516,7 +516,7 @@ def upload_file():
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
 @login_required
 def add_car(driver_id):
-    if current_user.id != current_user.id and current_user.role != 'admin':
+    if current_user.id != current_user.id:
         abort(403)
     if request.method == 'POST':
         bucket = 'cars'
