@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Event Info{% endblock %}
+
+{% block content %}
+<main class="events-wrapper container">
+  <div class="card events-card p-4">
+
+    <h2 class="text-center mb-4">Event Information</h2>
+
+    <dl class="row mb-4">
+      <dt class="col-sm-4">Event Name</dt>
+      <dd class="col-sm-8">{{ event.event_name }}</dd>
+
+      <dt class="col-sm-4">Event Date</dt>
+      <dd class="col-sm-8">{{ event.event_date }}</dd>
+
+      <dt class="col-sm-4">Checked‑In Drivers</dt>
+      <dd class="col-sm-8">{{ checked_in_count }}</dd>
+    </dl>
+
+    {% if class_counts %}
+      <h4 class="mt-4">Checked‑In Drivers by Class</h4>
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered w-auto mx-auto">
+          <thead class="table-light">
+            <tr>
+              <th>Class</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in class_counts %}
+              <tr>
+                <td>{{ row.class }}</td>
+                <td class="text-end">{{ row.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-center text-muted">No drivers have checked in yet.</p>
+    {% endif %}
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+      <a href="{{ url_for('events') }}" class="btn btn-outline-secondary btn-lg">Back to Events</a>
+    </div>
+  </div>
+</main>
+{% endblock %}
