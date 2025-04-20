@@ -61,7 +61,9 @@
                         {% for event in events %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('event_check_ins', event_id=event.id) }}" class="text-decoration-none">{{ event.event_name }}</a>
+                                <a href="{{ url_for('event_info', event_id=event.id) }}" class="text-decoration-none">
+                                    {{ event.event_name }}
+                                </a>
                             </td>
                             <td>{{ event.event_date }}</td>
                             <td>
