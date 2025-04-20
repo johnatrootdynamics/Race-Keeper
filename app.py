@@ -859,7 +859,7 @@ def event_info(event_id):
         SELECT d.class          AS class,
                ROUND(AVG(runs.run_count), 2) AS avg_runs
         FROM (
-            SELECT driver_id, COUNT(*) AS run_count
+            SELECT car_id, COUNT(*) AS run_count
             FROM car_runs
             WHERE event_id = %s
             GROUP BY car_id
