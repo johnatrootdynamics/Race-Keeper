@@ -1,50 +1,31 @@
-{% extends "base.html" %}
-{% block title %}Event Info{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Add Car</title>
+</head>
+<body>
+    <div class="container profile-container">
+        <h1 class="title">Add Car</h1>
+        <form class="add-car-form" method="POST" action="{{ url_for('add_car', driver_id=driver_id) }}" enctype="multipart/form-data">
+            <label for="make">Make:</label>
+            <input type="text" name="make" required>
 
-{% block content %}
-<main class="events-wrapper container">
-  <div class="card events-card p-4">
+            <label for="model">Model:</label>
+            <input type="text" name="model" required>
 
-    <h2 class="text-center mb-4">Event Information</h2>
+            <label for="year">Year:</label>
+            <input type="number" name="year" required>
+            
+            <label for="picture">Upload Picture:</label>
+            <input type="file" name="picture">
 
-    <dl class="row mb-4">
-      <dt class="col-sm-4">Event Name</dt>
-      <dd class="col-sm-8">{{ event.event_name }}</dd>
-
-      <dt class="col-sm-4">Event Date</dt>
-      <dd class="col-sm-8">{{ event.event_date }}</dd>
-
-      <dt class="col-sm-4">Checked‑In Drivers</dt>
-      <dd class="col-sm-8">{{ checked_in_count }}</dd>
-    </dl>
-
-    {% if class_counts %}
-      <h4 class="mt-4">Checked‑In Drivers by Class</h4>
-      <div class="table-responsive mb-4">
-        <table class="table table-bordered w-auto mx-auto">
-          <thead class="table-light">
-            <tr>
-              <th>Class</th>
-              <th class="text-end">Count</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in class_counts %}
-              <tr>
-                <td>{{ row.class }}</td>
-                <td class="text-end">{{ row.count }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <p class="text-center text-muted">No drivers have checked in yet.</p>
-    {% endif %}
-
-    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-      <a href="{{ url_for('events') }}" class="btn btn-outline-secondary btn-lg">Back to Events</a>
+            <button type="submit" class="add-car-button">Add Car</button>
+        </form>
+        <a href="{{ url_for('index') }}"><button class="back-button">Back to Home</button></a>
     </div>
-  </div>
-</main>
-{% endblock %}
+</body>
+</html>
