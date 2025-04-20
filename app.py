@@ -854,14 +854,32 @@ def event_info(event_id):
     """, (event_id,))
     class_counts = cur.fetchall()
 
+    # ➍ Calculate average runs by class
+    cur.execute("""
+        SELECT d.class          AS class,
+               ROUND(AVG(runs.run_count), 2) AS avg_runs
+        FROM (
+            SELECT driver_id, COUNT(*) AS run_count
+            FROM car_runs
+            WHERE event_id = %s
+            GROUP BY driver_id
+        ) AS runs
+        JOIN drivers AS d ON runs.driver_id = d.id
+        GROUP BY d.class
+        ORDER BY d.class
+    """, (event_id,))
+    avg_runs_by_class = cur.fetchall()
+
     cur.close()
 
     return render_template(
         'event_info.html',
         event=event,
         checked_in_count=checked_in_count,
-        class_counts=class_counts
+        class_counts=class_counts,
+        avg_runs_by_class=avg_runs_by_class
     )
+
 
 
     
