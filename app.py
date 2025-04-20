@@ -856,7 +856,7 @@ def event_info(event_id):
 
     # ➍ Calculate average runs by class
     cur.execute("""
-        SELECT d.class          AS class,
+        SELECT d.class            AS class,
                ROUND(AVG(runs.run_count), 2) AS avg_runs
         FROM (
             SELECT car_id, COUNT(*) AS run_count
