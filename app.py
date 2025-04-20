@@ -862,9 +862,9 @@ def event_info(event_id):
             SELECT driver_id, COUNT(*) AS run_count
             FROM car_runs
             WHERE event_id = %s
-            GROUP BY driver_id
+            GROUP BY car_id
         ) AS runs
-        JOIN drivers AS d ON runs.driver_id = d.id
+        JOIN drivers AS d ON runs.car_id = d.id
         GROUP BY d.class
         ORDER BY d.class
     """, (event_id,))
