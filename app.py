@@ -813,6 +813,56 @@ def register_run():
 
 
 
+@app.route('/event_info/<int:event_id>')
+@login_required
+def event_info(event_id):
+    if current_user.role != 'admin':
+        abort(403)
+
+    cur = mysql.connection.cursor(DictCursor)
+
+    # ➊ Fetch event metadata
+    cur.execute(
+        "SELECT event_name, event_date "
+        "FROM events WHERE id = %s",
+        (event_id,)
+    )
+    event = cur.fetchone()
+    if not event:
+        abort(404)
+
+    # ➋ Count distinct checked‑in drivers
+    cur.execute(
+        "SELECT COUNT(DISTINCT driver_id) AS checked_in_count "
+        "FROM check_ins "
+        "WHERE event_id = %s AND checked_in = TRUE",
+        (event_id,)
+    )
+    checked = cur.fetchone()
+    checked_in_count = checked['checked_in_count'] or 0
+
+    # ➌ Breakdown by class (checked‑in only)
+    cur.execute("""
+        SELECT d.class     AS class,
+               COUNT(DISTINCT cr.driver_id) AS count
+        FROM check_ins AS cr
+        JOIN drivers   AS d  ON cr.driver_id = d.id
+        WHERE cr.event_id = %s
+          AND cr.checked_in = TRUE
+        GROUP BY d.class
+        ORDER BY d.class
+    """, (event_id,))
+    class_counts = cur.fetchall()
+
+    cur.close()
+
+    return render_template(
+        'event_info.html',
+        event=event,
+        checked_in_count=checked_in_count,
+        class_counts=class_counts
+    )
+
 
     
 if __name__ == '__main__':
