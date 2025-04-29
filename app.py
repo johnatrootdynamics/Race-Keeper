@@ -33,7 +33,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-
+roles = ["user","admin"]
 
 
 
@@ -55,6 +55,16 @@ class User(UserMixin):
         self.id = id
         self.username = username
         self.role = role
+
+def role_required(*roles):
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not (current_user.is_authenticated and current_user.role in roles):
+                abort(403)          # Forbidden
+            return view(*args, **kwargs)
+        return wrapped
+    return decorator
 
 @login_manager.user_loader
 def load_user(user_id):
