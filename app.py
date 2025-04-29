@@ -469,7 +469,45 @@ def upload_file():
     return 'Invalid file format'
 
 
+@app.route('/driver/<int:driver_id>/upload_picture', methods=['POST'])
+@login_required
+def upload_driver_picture(driver_id):
+    # only the driver themself or an admin can change this picture
+    if not (current_user.id == driver_id or current_user.role == 'admin'):
+        abort(403)
 
+    # make sure a file was sent
+    if 'picture' not in request.files:
+        flash('No file part in request', 'danger')
+        return redirect(url_for('driver_profile', driver_id=driver_id))
+
+    file = request.files['picture']
+    if file.filename == '':
+        flash('No file selected', 'danger')
+        return redirect(url_for('driver_profile', driver_id=driver_id))
+
+    if not allowed_file(file.filename):
+        flash('Invalid file type', 'danger')
+        return redirect(url_for('driver_profile', driver_id=driver_id))
+
+    # save locally (optional) or push to Minio, just like in register()
+    filename = secure_filename(file.filename)
+    size = os.fstat(file.fileno()).st_size
+    bucket = 'drivers'
+    picture_path = f"{MINIO_API_HOST}/{bucket}/{filename}"
+    upload_object(filename, file, size, bucket)
+
+    # persist the new URL in the database
+    cur = mysql.connection.cursor()
+    cur.execute(
+        "UPDATE drivers SET picture_path = %s WHERE id = %s",
+        (picture_path, driver_id)
+    )
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Profile picture updated!', 'success')
+    return redirect(url_for('driver_profile', driver_id=driver_id))
 
 
 # @app.route('/add_driver', methods=['GET', 'POST'])
