@@ -96,13 +96,22 @@
             <!-- Header row -->
             <div class="row g-4 align-items-center mb-4">
                 <div class="col-auto text-center">
+                  <form id="uploadPicForm" action="{{ url_for('upload_driver_picture', driver_id=driver[0].id) }}"
+                        method="POST" enctype="multipart/form-data">
+                    <input type="file" name="picture" id="picInput" class="d-none" accept="image/*" />
+                
                     {% if driver[0].picture_path %}
-                        <img src="{{ driver[0].picture_path }}" alt="Driver Picture" class="driver-picture" />
+                      <img src="{{ driver[0].picture_path }}"
+                           alt="Driver Picture"
+                           class="driver-picture"
+                           id="profilePic" />
                     {% else %}
-                        <div class="driver-picture d-flex align-items-center justify-content-center bg-secondary text-white">
-                            No Image
-                        </div>
+                      <div class="driver-picture d-flex align-items-center justify-content-center bg-secondary text-white"
+                           id="profilePic">
+                        No Image
+                      </div>
                     {% endif %}
+                  </form>
                 </div>
                 <div class="col">
                     <h2 class="mb-1">{{ driver[0].first_name }} {{ driver[0].last_name }}</h2>
@@ -238,6 +247,14 @@
                 }, false);
             });
         })();
+        document.getElementById('profilePic').addEventListener('click', () => {
+        document.getElementById('picInput').click();
+        });
+
+      document.getElementById('picInput').addEventListener('change', () => {
+        // auto-submit when a file is chosen
+      document.getElementById('uploadPicForm').submit();
+      });
     </script>
 </body>
 </html>
