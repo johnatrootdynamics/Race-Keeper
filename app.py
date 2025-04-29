@@ -325,6 +325,7 @@ def final_check_in():
 
 @app.route('/check_in', methods=['GET', 'POST'])
 @login_required
+@role_required("admin")
 def check_in():
     if current_user.role != 'admin':
         abort(403)
@@ -379,6 +380,7 @@ def delete_driver(driver_id):
 
 @app.route('/delete_event/<int:event_id>', methods=['POST'])
 @login_required
+@role_required("admin")
 def delete_event(event_id):
     if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
