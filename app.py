@@ -225,33 +225,65 @@ def car_qr_code(car_id):
     return send_file(filename, mimetype='image/png')
 
 @app.route('/driver/<int:driver_id>', methods=['GET', 'POST'])
+@login_required
 def driver_profile(driver_id):
-    if current_user.id != current_user.id and current_user.role != 'admin':
+    # only the driver themself or an admin can view
+    if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
-    if request.method == 'POST':
-        # Handle adding a new note
-        note_text = request.form.get('note_text')
 
+    if request.method == 'POST':
+        note_text = request.form.get('note_text')
         if note_text:
             cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO notes (driver_id, note_text) VALUES (%s, %s)", (driver_id, note_text))
+            cur.execute(
+                "INSERT INTO notes (driver_id, note_text) VALUES (%s, %s)",
+                (driver_id, note_text)
+            )
             mysql.connection.commit()
             cur.close()
 
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)
+    # driver & cars as before
     cur.execute("SELECT * FROM drivers WHERE id = %s", (driver_id,))
-    driver = cur.fetchall()
+    driver = cur.fetchone()
     cur.execute("SELECT * FROM cars WHERE driver_id = %s", (driver_id,))
     cars = cur.fetchall()
 
-    cur.execute("SELECT * FROM check_ins WHERE driver_id = %s", (driver_id,))
-    checkedin = cur.fetchall()
-    # Fetch notes for the driver
-    cur.execute("SELECT * FROM notes WHERE driver_id = %s ORDER BY created_at DESC ", (driver_id,))
+    # ← New: fetch only today's event(s) with check-in status
+    today = datetime.now().date()
+    cur.execute("""
+        SELECT
+          e.id           AS event_id,
+          e.event_name,
+          COALESCE(ci.checked_in, FALSE) AS checked_in,
+          ci.check_in_time
+        FROM events e
+        LEFT JOIN check_ins ci
+          ON ci.event_id = e.id
+         AND ci.driver_id = %s
+        WHERE DATE(e.event_date) = %s
+        """,
+        (driver_id, today)
+    )
+    today_checkins = cur.fetchall()
+
+    # notes as before
+    cur.execute("""
+        SELECT * FROM notes
+         WHERE driver_id = %s
+         ORDER BY created_at DESC
+    """, (driver_id,))
     notes = cur.fetchall()
+
     cur.close()
 
-    return render_template('driver_profile.html', driver=driver, cars=cars, notes=notes, checkedin=checkedin)
+    return render_template(
+        'driver_profile.html',
+        driver=driver,
+        cars=cars,
+        notes=notes,
+        today_checkins=today_checkins
+    )
 
 @app.route('/final_check_in', methods=['POST'])
 def final_check_in():
