@@ -95,7 +95,7 @@
                         method="POST" enctype="multipart/form-data">
                     <input type="file" name="picture" id="picInput" class="d-none" accept="image/*" />
                 
-                    {% if driver[0].picture_path %}
+                    {% if driver.picture_path %}
                       <img src="{{ driver[0].picture_path }}"
                            alt="Driver Picture"
                            class="driver-picture"
@@ -130,7 +130,7 @@
                   {% endif %}
                 </div>
                 <div class="col-auto text-center">
-                    <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" alt="Driver QR Code" class="qr-code" />
+                    <img src="{{ url_for('driver_qr_code', driver_id=driver.id) }}" alt="Driver QR Code" class="qr-code" />
                 </div>
             </div>
 
@@ -152,14 +152,14 @@
                 <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="row g-3 pt-3">
                         <div class="col-md-6">
-                            <p><strong>Driver ID:</strong> {{ driver[0].id }}</p>
-                            <p><strong>Date of Birth:</strong> {{ driver[0].date_of_birth }}</p>
-                            <p><strong>Phone Number:</strong> {{ driver[0].phone }}</p>
+                            <p><strong>Driver ID:</strong> {{ driver.id }}</p>
+                            <p><strong>Date of Birth:</strong> {{ driver.date_of_birth }}</p>
+                            <p><strong>Phone Number:</strong> {{ driver.phone }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Address:</strong> {{ driver[0].address }}</p>
-                            <p><strong>City:</strong> {{ driver[0].city }}</p>
-                            <p><strong>State:</strong> {{ driver[0].state }}</p>
+                            <p><strong>Address:</strong> {{ driver.address }}</p>
+                            <p><strong>City:</strong> {{ driver.city }}</p>
+                            <p><strong>State:</strong> {{ driver.state }}</p>
                         </div>
                     </div>
                 </div>
@@ -180,7 +180,7 @@
                             <p class="text-muted">No notes yet.</p>
                         {% endif %}
 
-                        <form method="POST" action="{{ url_for('driver_profile', driver_id=driver[0].id) }}" class="needs-validation" novalidate>
+                        <form method="POST" action="{{ url_for('driver_profile', driver_id=driver.id) }}" class="needs-validation" novalidate>
                             <div class="mb-3">
                                 <label for="note_text" class="form-label">Add Note</label>
                                 <textarea name="note_text" id="note_text" rows="4" class="form-control" required></textarea>
@@ -214,7 +214,7 @@
                         {% else %}
                             <p class="text-muted">No cars associated.</p>
                         {% endif %}
-                        <a href="{{ url_for('add_car', driver_id=driver[0].id) }}" class="btn btn-success">Add Car</a>
+                        <a href="{{ url_for('add_car', driver_id=driver.id) }}" class="btn btn-success">Add Car</a>
                     </div>
                 </div>
             </div>
@@ -223,7 +223,7 @@
             <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4 flex-wrap">
                 <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
 
-                <form method="POST" action="{{ url_for('delete_driver', driver_id=driver[0].id) }}" onsubmit="return confirm('Are you sure you want to delete this driver?');">
+                <form method="POST" action="{{ url_for('delete_driver', driver_id=driver.id) }}" onsubmit="return confirm('Are you sure you want to delete this driver?');">
                     <button type="submit" class="btn btn-danger">Delete Driver</button>
                 </form>
             </div>
