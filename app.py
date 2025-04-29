@@ -10,6 +10,9 @@ from MySQLdb.cursors import DictCursor
 import qrcode 
 from minio import Minio
 from datetime import datetime
+from functools import wraps
+
+
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 # Configure MySQL
