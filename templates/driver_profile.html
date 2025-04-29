@@ -91,7 +91,7 @@
             <!-- Header row -->
             <div class="row g-4 align-items-center mb-4">
                 <div class="col-auto text-center">
-                  <form id="uploadPicForm" action="{{ url_for('upload_driver_picture', driver_id=driver[0].id) }}"
+                  <form id="uploadPicForm" action="{{ url_for('upload_driver_picture', driver_id=driver.id) }}"
                         method="POST" enctype="multipart/form-data">
                     <input type="file" name="picture" id="picInput" class="d-none" accept="image/*" />
                 
