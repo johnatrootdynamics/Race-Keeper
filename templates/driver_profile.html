@@ -108,16 +108,26 @@
                     {% endif %}
                   </form>
                 </div>
-                <div class="col">
-                    <h2 class="mb-1">{{ driver[0].first_name }} {{ driver[0].last_name }}</h2>
-                    <span class="badge bg-primary fs-6">Class {{ driver[0].class }}</span>
-                    <div class="mt-2">
-                        {% if checkedin[0] %}
-                            <span class="text-success fw-semibold">Checked in at {{ checkedin[0].check_in_time }}</span>
+                 {% if today_checkins %}
+                    {% for ci in today_checkins %}
+                      <div class="mt-2 text-center">
+                        {% if ci.checked_in %}
+                          <span class="text-success fw-semibold">
+                            Checked in to {{ ci.event_name }}
+                            at {{ ci.check_in_time }}
+                          </span>
                         {% else %}
-                            <span class="text-muted">Not checked in</span>
+                          <span class="text-muted">
+                            Not checked in to {{ ci.event_name }}
+                          </span>
                         {% endif %}
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <div class="mt-2 text-center text-muted">
+                      No event scheduled for today.
                     </div>
+                  {% endif %}
                 </div>
                 <div class="col-auto text-center">
                     <img src="{{ url_for('driver_qr_code', driver_id=driver[0].id) }}" alt="Driver QR Code" class="qr-code" />
