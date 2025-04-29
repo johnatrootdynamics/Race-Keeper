@@ -317,65 +317,6 @@ def check_in():
     return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, messages=messages, driver=driver)
 
 
-# @app.route('/check_in', methods=['GET', 'POST'])
-# def check_in():
-#     messages = []
-#     if request.method == 'POST':
-#         driver_id = request.form.get('driver_id')
-#         event_id = request.form.get('event_id')
-
-#         if driver_id and event_id:
-#             # Fetch the cars associated with the driver_id
-#             cur = mysql.connection.cursor()
-#             cur.execute("SELECT * FROM cars WHERE driver_id = %s", (driver_id,))
-#             cars = cur.fetchall()
-            
-#             cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
-#             existing_driver = cur.fetchone()
-#             cur.close()
-#             if not existing_driver:
-#                 messages.append("Driver does not exist.")
-#                 driver_id = None
-#             # Fetch today's events
-#             events = get_events_for_today()
-#             session['driver_id'] = driver_id
-
-#             return render_template('check_in.html', cars=cars, events=events, driver_id=driver_id, event_id=event_id, messages=messages)
-
-#     # Fetch today's events
-#     events = get_events_for_today()
-#     return render_template('check_in.html', events=events, messages=messages)
-
-# # Add a new route to handle the final check-in after selecting a car
-# @app.route('/final_check_in', methods=['POST'])
-# def final_check_in():
-#     messages = []
-#     driver_id = request.form.get('driver_id')
-#     car_id = request.form.get('car_id')
-#     event_id = request.form.get('event_id')
-
-#     if driver_id and car_id and event_id:
-#         # Check if the car has already checked in for today
-#         cur = mysql.connection.cursor()
-#         cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id, event_id,))
-#         last_check_in = cur.fetchone()
-
-#         # Check if the driver exists
-#         cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
-#         existing_driver = cur.fetchone()
-
-#         if not existing_driver:
-#             messages.append("Driver does not exist.")
-
-#         if last_check_in and last_check_in['checked_in']:
-#             messages.append("Car already checked in for today.")
-
-#         cur.execute("INSERT INTO check_ins (driver_id, car_id, event_id, checked_in) VALUES (%s, %s, %s, TRUE)", (driver_id, car_id, event_id,))
-#         mysql.connection.commit()
-#         cur.close()
-#         messages.append("Driver Check-in Successful.")
-
-#     return redirect(url_for('check_in', messages=messages))
 
 
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
@@ -510,46 +451,6 @@ def upload_driver_picture(driver_id):
     return redirect(url_for('driver_profile', driver_id=driver_id))
 
 
-# @app.route('/add_driver', methods=['GET', 'POST'])
-# @login_required
-# def add_driver():
-#     if request.method == 'POST':
-#         bucket = 'drivers'
-#         # Get form data
-#         first_name = request.form['first_name']
-#         last_name = request.form['last_name']
-#         date_of_birth = request.form['date_of_birth']
-#         address = request.form['address']
-#         phone_number = request.form['phone_number']
-#         dclass = request.form['dclass']
-
-#         if "picture" in request.files:
-#             file = request.files["picture"]
-#         # If the user does not select a file, the browser submits an
-#         # empty file without a filename.
-#             if file.filename != "":
-#                 picture = request.files['picture']
-#                 if picture and allowed_file(file.filename):
-#                     filename = secure_filename(picture.filename)
-#                     size = os.fstat(picture.fileno()).st_size
-#                     picture_path = MINIO_API_HOST + '/drivers/' + filename
-#                     upload_object(filename, file, size, bucket)
-#                 else:
-#                     flash('Invalid File Type','danger')
-#                     picture_path = None
-#             else:
-#                 picture_path = None
-            
-#         # Insert data into the 'drivers' table
-#         cur = mysql.connection.cursor()
-#         cur.execute("INSERT INTO drivers (first_name, last_name, date_of_birth, address, phone_number, picture_path, class) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-#                     (first_name, last_name, date_of_birth, address, phone_number, picture_path, dclass))
-#         mysql.connection.commit()
-#         cur.close()
-
-#         return redirect(url_for('index'))
-
-#     return render_template('add_driver.html')
 
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
 @login_required
