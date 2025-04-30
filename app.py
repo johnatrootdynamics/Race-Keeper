@@ -138,7 +138,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(DictCursor)
         cursor.execute('SELECT * FROM drivers WHERE username = %s', (username,))
         user = cursor.fetchone()
         cursor.close()
@@ -146,9 +146,17 @@ def login():
         if user and check_password_hash(user['password'], password):
             user_obj = User(id=user['id'], username=user['username'], role=user['role'])
             login_user(user_obj)
-            return redirect(url_for('index'))
+
+            # Redirect based on role
+            if user_obj.role == 'user':
+                # non-admin users go straight to THEIR profile
+                return redirect(url_for('driver_profile', driver_id=user_obj.id))
+            else:
+                # admins see the main dashboard
+                return redirect(url_for('index'))
         else:
-            flash('Invalid username or password')
+            flash('Invalid username or password', 'danger')
+
     return render_template('login.html')
 
 def get_driver_data(driver_id):
