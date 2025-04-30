@@ -86,51 +86,68 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    show_role_selection = []
+    # only admins get to pick role; everyone else is treated as anonymous self-register
     show_role_selection = current_user.is_authenticated and current_user.role == 'admin'
     if current_user.is_authenticated and current_user.role != 'admin':
         abort(403)
+
     if request.method == 'POST':
-        bucket = 'drivers'
-        # Get form data
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
+        # basic fields…
+        first_name    = request.form['first_name']
+        last_name     = request.form['last_name']
         date_of_birth = request.form['date_of_birth']
-        address = request.form['address']
-        city = request.form['city']
-        state = request.form['state']
-        zipcode = request.form['zip']
-        phone_number = request.form['phone_number']
-        dclass = request.form['dclass']
-        username = request.form['username']
-        password = request.form['password']
-        hashed_password = generate_password_hash(password, method='scrypt')
+        address       = request.form['address']
+        city          = request.form['city']
+        state         = request.form['state']
+        zipcode       = request.form['zip']
+        phone_number  = request.form['phone_number']
+        dclass        = request.form['dclass']
+        username      = request.form['username']
+        password      = request.form['password']
+        hashed_pwd    = generate_password_hash(password, method='scrypt')
 
+        # pick role: admin-chosen or default to 'user'
+        if show_role_selection:
+            role = request.form.get('role', 'user')
+            if role not in roles:
+                role = 'user'
+        else:
+            role = 'user'
+
+        # handle optional picture upload…
+        picture_path = None
         if 'picture' in request.files:
-            picture = request.files['picture']
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
-            if picture.filename != "":
-                picture = request.files['picture']
-                if picture and allowed_file(picture.filename):
-                    filename = secure_filename(picture.filename)
-                    size = os.fstat(picture.fileno()).st_size
-                    picture_path = MINIO_API_HOST + '/drivers/' + filename
-                    upload_object(filename, picture, size, bucket)
-                else:
-                    flash('Invalid File Type','danger')
-                    picture_path = 'firstnone'
-            else:
-                picture_path = 'secondnone'
-        else: picture_path = 'thirdone'
+            pic = request.files['picture']
+            if pic and pic.filename and allowed_file(pic.filename):
+                filename = secure_filename(pic.filename)
+                size = os.fstat(pic.fileno()).st_size
+                picture_path = f"{MINIO_API_HOST}/drivers/{filename}"
+                upload_object(filename, pic, size, 'drivers')
 
+        # insert—including the new role column!
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO drivers (first_name, last_name, city, state, zip, date_of_birth, address, phone_number, picture_path, class,username, password) VALUES (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-        (first_name, last_name, city, state, zipcode, date_of_birth, address, phone_number, picture_path, dclass,username, hashed_password))
+        cur.execute("""
+            INSERT INTO drivers
+              (first_name, last_name, city, state, zip,
+               date_of_birth, address, phone_number, picture_path,
+               class, username, password, role)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            first_name, last_name, city, state, zipcode,
+            date_of_birth, address, phone_number, picture_path,
+            dclass, username, hashed_pwd, role
+        ))
         mysql.connection.commit()
         cur.close()
+
         return redirect(url_for('login'))
-    return render_template('register.html', show_role_selection=show_role_selection)
+
+    # GET -> show form
+    return render_template(
+        'register.html',
+        show_role_selection=show_role_selection
+    )
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
