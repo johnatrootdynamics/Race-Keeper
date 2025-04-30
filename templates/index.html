@@ -88,18 +88,8 @@
             <p class="text-center mb-0">No drivers yet.</p>
             {% endif %}
 
-            <!-- Action buttons -->
-            {% if current_user.role == 'admin' %}
-            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4 flex-wrap">
-                <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">Add Driver</a>
-                <a href="{{ url_for('check_in') }}" class="btn btn-primary btn-lg">Check In</a>
-                <a href="{{ url_for('events') }}" class="btn btn-secondary btn-lg">Events</a>
-                <a href="{{ url_for('car_inspection') }}" class="btn btn-warning btn-lg text-white">Car Inspection</a>
-            </div>
-            {% endif %}
-            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4 flex-wrap">
-                <a href="/logout" class="btn btn-danger btn-lg">Logout</a>
-            </div>
+      {# ——— shared actions bar ——— #}
+      {% include "partials/_actions_bar.html" %}
         </div>
     </main>
 
