@@ -230,13 +230,20 @@ def allowed_file(filename):
 @app.route('/')
 @login_required
 def index():
-    # Fetch and display list of drivers
-    cur = mysql.connection.cursor()
-    print(cur)
-    cur.execute("SELECT * FROM drivers")
-    drivers = cur.fetchall()
-    cur.close()
-    return render_template('index.html', drivers=drivers)
+    # Regular users go straight to their own profile
+    if current_user.role == 'user':
+        return redirect(url_for('driver_profile', driver_id=current_user.id))
+
+    # Admins see the full driver dashboard
+    if current_user.role == 'admin':
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM drivers")
+        drivers = cur.fetchall()
+        cur.close()
+        return render_template('index.html', drivers=drivers)
+
+    # Any other role is forbidden
+    abort(403)
 
 @app.route('/driver_qr/<int:driver_id>')
 def driver_qr_code(driver_id):
