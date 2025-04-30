@@ -80,14 +80,9 @@
       {% endif %}
 
       <!-- Action buttons -->
-      <div class="d-grid gap-2 d-md-flex justify-content-md-center flex-wrap">
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
-        <a href="{{ url_for('events') }}" class="btn btn-secondary">Events</a>
-        <a href="{{ url_for('check_in') }}" class="btn btn-primary">Check In</a>
-        <a href="{{ url_for('register') }}" class="btn btn-success">Add Driver</a>
-        <a href="{{ url_for('car_inspection') }}" class="btn btn-warning text-white">Car Inspection</a>
-        <a href="/logout" class="btn btn-danger">Logout</a>
-      </div>
+      {# ——— shared actions bar ——— #}
+      {% include "partials/_actions_bar.html" %}
+      
     </div>
   </main>
 
