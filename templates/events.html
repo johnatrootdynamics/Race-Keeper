@@ -81,13 +81,9 @@
             {% endif %}
 
             <!-- Action buttons -->
-            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4 flex-wrap">
-                <a href="{{ url_for('create_event') }}" class="btn btn-success btn-lg">Create Event</a>
-                <a href="{{ url_for('check_in') }}" class="btn btn-primary btn-lg">Check In</a>
-                <a href="{{ url_for('register_run') }}" class="btn btn-secondary btn-lg">Lap Counter</a>
-                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">Back to Home</a>
-                <a href="/logout" class="btn btn-danger btn-lg">Logout</a>
-            </div>
+      {# ——— shared actions bar ——— #}
+      {% include "partials/_actions_bar.html" %}
+            
         </div>
     </main>
 
