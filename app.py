@@ -147,17 +147,20 @@ def login():
             user_obj = User(id=user['id'], username=user['username'], role=user['role'])
             login_user(user_obj)
 
-            # Redirect based on role
-            if user_obj.role == 'user':
-                # non-admin users go straight to THEIR profile
+            # Explicit role routing
+            if user_obj.role == 'admin':
+                return redirect(url_for('index'))
+            elif user_obj.role == 'user':
                 return redirect(url_for('driver_profile', driver_id=user_obj.id))
             else:
-                # admins see the main dashboard
-                return redirect(url_for('index'))
-        else:
-            flash('Invalid username or password', 'danger')
+                # Unknown role—log out and forbid
+                logout_user()
+                abort(403)
+
+        flash('Invalid username or password', 'danger')
 
     return render_template('login.html')
+
 
 def get_driver_data(driver_id):
     cur = mysql.connection.cursor(DictCursor)
