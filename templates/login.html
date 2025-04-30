@@ -41,6 +41,13 @@
             padding: 0.75rem 1.25rem;
             font-size: 1rem;
         }
+
+        /* ---------- Logo ---------- */
+        .auth-logo {
+            display: block;
+            margin: 0 auto 1.5rem auto;
+            max-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -48,6 +55,9 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+            <img src="https://s3-api.root-dynamics.com/public/rd-logo.png"
+                 alt="Root Dynamics Logo"
+                 class="auth-logo" />
             <div class="card auth-card p-4">
                 <h2 class="card-title text-center mb-4">Welcome Back Racer</h2>
                 <form action="{{ url_for('login') }}" method="post">
