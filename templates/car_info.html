@@ -81,7 +81,6 @@
 
             <!-- Action Buttons -->
             <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4 flex-wrap">
-                <a href="{{ url_for('car_inspection') }}" class="btn btn-warning text-white">Car Inspection</a>
 
                 <form method="POST" action="{{ url_for('delete_car', car_id=car.id, driver_id=car.driver_id) }}" onsubmit="return confirm('Are you sure you want to delete this car?');">
                     <button type="submit" class="btn btn-danger">Delete Car</button>
