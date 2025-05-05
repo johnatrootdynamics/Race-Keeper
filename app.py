@@ -30,7 +30,7 @@ BUCKET_NAME = "oswimages"
 MINIO_API_HOST = "https://s3-api.root-dynamics.com"
 
 BOLD_API = 'https://api.boldsign.com'
-API_KEY   = app.config['MzdkZDFmN2YtOWQwZS00YjM4LWIyYTUtMmFkNDdiMjMxZGMw']
+API_KEY   = app.config['API_KEY'] = 'MzdkZDFmN2YtOWQwZS00YjM4LWIyYTUtMmFkNDdiMjMxZGMw'
 TEMPLATE_ID = 'e5c8f024-64df-4bdc-9142-3a04c01a154a'
 
 def create_boldsign_request(driver_id, event_id):
