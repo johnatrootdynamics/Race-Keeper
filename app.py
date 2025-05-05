@@ -333,43 +333,66 @@ def driver_profile(driver_id):
         today_checkins=today_checkins
     )
 
+from MySQLdb.cursors import DictCursor
+
 @app.route('/final_check_in', methods=['POST'])
+@login_required
+@role_required('admin')
 def final_check_in():
-    if current_user.id != current_user.id and current_user.role != 'admin':
-        abort(403)
     driver_id = request.form.get('driver_id')
-    car_id = request.form.get('car_id')
-    event_id = request.form.get('event_id')
+    car_id    = request.form.get('car_id')
+    event_id  = request.form.get('event_id')
 
-    if driver_id and car_id and event_id:
-         # Check if the car has already checked in for today
-         cur = mysql.connection.cursor()
-         cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s ORDER BY check_in_time DESC LIMIT 1", (driver_id, event_id,))
-         last_check_in = cur.fetchone()
-
-         # Check if the driver exists
-         cur.execute("SELECT id FROM drivers WHERE id = %s", (driver_id,))
-         existing_driver = cur.fetchone()
-
-         if not existing_driver:
-             flash("Driver does not exist.", 'error')
-
-         if last_check_in and last_check_in['checked_in']:
-             flash("Car already checked in for today.", 'error')
-         
-         else:
-           cur.execute("INSERT INTO check_ins (driver_id, car_id, event_id, checked_in) VALUES (%s, %s, %s, TRUE)", (driver_id, car_id, event_id,))
-           mysql.connection.commit()
-           cur.close()
-           flash("Driver Check-in Successful.", 'success')
-
-
-
-           flash('Check-in successful!', 'success')
-    else:
+    # Must have all three IDs
+    if not (driver_id and car_id and event_id):
         flash('Check-in failed. Please ensure all fields are filled.', 'danger')
+        return redirect(url_for('check_in'))
 
-    return redirect(url_for('check_in'))
+    cur = mysql.connection.cursor(DictCursor)
+
+    # ➊ Verify waiver has been signed for this event
+    cur.execute("""
+        SELECT waiver_signed
+          FROM check_ins
+         WHERE driver_id = %s
+           AND event_id   = %s
+    """, (driver_id, event_id))
+    waiver_row = cur.fetchone()
+
+    if not waiver_row or not waiver_row.get('waiver_signed'):
+        flash('Cannot check in: waiver not signed yet.', 'danger')
+        cur.close()
+        return redirect(url_for('event_check_ins', event_id=event_id))
+
+    # ➋ Prevent duplicate check-ins
+    cur.execute("""
+        SELECT checked_in
+          FROM check_ins
+         WHERE driver_id = %s
+           AND event_id   = %s
+        ORDER BY check_in_time DESC
+        LIMIT 1
+    """, (driver_id, event_id))
+    last = cur.fetchone()
+
+    if last and last.get('checked_in'):
+        flash('Car already checked in for today.', 'warning')
+        cur.close()
+        return redirect(url_for('event_check_ins', event_id=event_id))
+
+    # ➌ Perform the check-in
+    cur.execute("""
+        INSERT INTO check_ins
+            (driver_id, car_id, event_id, checked_in, waiver_signed, waiver_request_id)
+        VALUES
+            (%s, %s, %s, TRUE, TRUE, %s)
+    """, (driver_id, car_id, event_id, waiver_row.get('waiver_request_id')))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Driver checked in successfully!', 'success')
+    return redirect(url_for('event_check_ins', event_id=event_id))
+
 
 @app.route('/check_in', methods=['GET', 'POST'])
 @login_required
@@ -900,7 +923,29 @@ def event_info(event_id):
         class_counts=class_counts,
         avg_runs_by_class=avg_runs_by_class
     )
+@app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
+@login_required
+def start_waiver(driver_id, event_id):
+    # only the driver or an admin can do this
+    if not (current_user.id == driver_id or current_user.role == 'admin'):
+        abort(403)
 
+    # 1) Create the BoldSign request
+    request_id = create_boldsign_request(driver_id, event_id)
+
+    # 2) Save the request_id on that check_in row
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        UPDATE check_ins
+           SET waiver_request_id = %s
+         WHERE driver_id = %s
+           AND event_id = %s
+    """, (request_id, driver_id, event_id))
+    mysql.connection.commit()
+    cur.close()
+
+    # 3) Redirect user to the BoldSign URL
+    return redirect(get_boldsign_signing_url(request_id))
 
 
     
