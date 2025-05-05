@@ -110,23 +110,22 @@
           <span class="badge bg-primary fs-6">Class {{ driver.class }}</span>
 
           {% if today_checkins %}
-  {% for ci in today_checkins %}
-    <div class="mt-2">
-      {% if ci.waiver_signed %}
-        <span class="d-inline-block px-2 py-1 bg-success text-white rounded">
-          Waiver signed ✓
-        </span>
-      {% else %}
-        <a href="{{ url_for('start_waiver', driver_id=driver.id, event_id=ci.event_id) }}"
-           class="btn btn-outline-primary btn-sm">
-          Sign Waiver
-        </a>
-      {% endif %}
-    </div>
-  {% endfor %}
-{% endif %}
+              {% for ci in today_checkins %}
+                <div class="mt-2">
+                  {% if ci.waiver_signed %}
+                    <span class="d-inline-block px-2 py-1 bg-success text-white rounded">
+                      Waiver signed ✓
+                    </span>
+                  {% else %}
+                    <a href="{{ url_for('start_waiver', driver_id=driver.id, event_id=ci.event_id) }}"
+                       class="btn btn-outline-primary btn-sm">
+                      Sign Waiver
+                    </a>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            {% endif %}
               </div>
-            {% endfor %}
           {% else %}
             <div class="mt-2 text-muted">No event scheduled for today.</div>
           {% endif %}
