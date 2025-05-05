@@ -29,7 +29,31 @@ SECRET_KEY = "GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4"
 BUCKET_NAME = "oswimages"
 MINIO_API_HOST = "https://s3-api.root-dynamics.com"
 
+BOLD_API = 'https://api.boldsign.com'
+API_KEY   = app.config['MzdkZDFmN2YtOWQwZS00YjM4LWIyYTUtMmFkNDdiMjMxZGMw']
+TEMPLATE_ID = 'e5c8f024-64df-4bdc-9142-3a04c01a154a'
 
+def create_boldsign_request(driver_id, event_id):
+    payload = {
+      "template_id": TEMPLATE_ID,
+      "signers": [
+        {
+          "name": get_driver_name(driver_id),
+          "email": get_driver_email(driver_id),
+          "role": "Racer"  # role within the document
+        }
+      ],
+      "client_redirect_url": url_for('check_in', event_id=event_id, _external=True),
+      # optional: webhooks for when they finish signing
+    }
+    resp = requests.post(
+        f"{BOLD_API}/v1/signing-requests",
+        json=payload,
+        auth=(API_KEY)
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    return data['request_id']
 
 mysql = MySQL(app)
 login_manager = LoginManager()
