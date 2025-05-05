@@ -110,17 +110,21 @@
           <span class="badge bg-primary fs-6">Class {{ driver.class }}</span>
 
           {% if today_checkins %}
-            {% for ci in today_checkins %}
-              <div class="mt-2">
-                {% if ci.checked_in %}
-                  <span class="d-inline-block px-2 py-1 bg-success text-white rounded">
-                    Checked in to {{ ci.event_name }} at {{ ci.check_in_time }}
-                  </span>
-                {% else %}
-                  <span class="d-inline-block px-2 py-1 bg-danger text-white rounded">
-                    Not checked in to any event
-                  </span>
-                {% endif %}
+  {% for ci in today_checkins %}
+    <div class="mt-2">
+      {% if ci.waiver_signed %}
+        <span class="d-inline-block px-2 py-1 bg-success text-white rounded">
+          Waiver signed ✓
+        </span>
+      {% else %}
+        <a href="{{ url_for('start_waiver', driver_id=driver.id, event_id=ci.event_id) }}"
+           class="btn btn-outline-primary btn-sm">
+          Sign Waiver
+        </a>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% endif %}
               </div>
             {% endfor %}
           {% else %}
