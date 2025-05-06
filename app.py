@@ -875,21 +875,28 @@ def event_info(event_id):
         class_counts=class_counts,
         avg_runs_by_class=avg_runs_by_class
     )
+
+
+
+
 def create_boldsign_request(driver_id, event_id):
-    """
-    Creates a BoldSign signing request based on a reusable Waiver template.
-    Returns the BoldSign request_id string.
-    """
+    api_key  = app.config.get('BOLD_API_KEY')
+    template = app.config.get('BOLD_TEMPLATE_ID')
+    base     = app.config.get('BOLD_API_BASE')
+
+    if not api_key or not template:
+        abort(500, "BoldSign API key or template ID not set")
+
+    # pull driver data however you do
     driver = get_driver_data(driver_id)
+
     payload = {
-        "template_id": app.config['BOLD_TEMPLATE_ID'],
-        "signers": [
-            {
-                "name":  f"{driver['first_name']} {driver['last_name']}",
-                "email": driver['username'] + "@example.com",
-                "role":  "Racer"
-            }
-        ],
+        "template_id": template,
+        "signers": [{
+            "name":  f"{driver['first_name']} {driver['last_name']}",
+            "email": f"{driver['username']}@example.com",
+            "role":  "Racer"
+        }],
         "client_redirect_url": url_for(
             'driver_profile',
             driver_id=driver_id,
@@ -898,46 +905,29 @@ def create_boldsign_request(driver_id, event_id):
         )
     }
 
-    auth = HTTPBasicAuth(
-        app.config['BOLD_API_KEY']
-    )
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type":  "application/json"
+    }
 
-    resp = requests.post(
-        f"{app.config['BOLD_API_BASE']}/signing-requests",
-        json=payload,
-        auth=auth
-    )
+    resp = requests.post(f"{base}/signing-requests", json=payload, headers=headers)
     resp.raise_for_status()
-    return resp.json()['request_id']
+    return resp.json()["request_id"]
 
 
 def get_boldsign_signing_url(request_id):
-    """
-    Fetches the signing URL for a given BoldSign request.
-    """
-    auth = HTTPBasicAuth(
-        app.config['BOLD_API_KEY'],
-        app.config['BOLD_API_SECRET']
-    )
+    api_key = app.config.get('BOLD_API_KEY')
+    base    = app.config.get('BOLD_API_BASE')
 
-    resp = requests.get(
-        f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
-        auth=auth
-    )
+    if not api_key:
+        abort(500, "BoldSign API key not set")
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = requests.get(f"{base}/signing-requests/{request_id}", headers=headers)
     resp.raise_for_status()
-    return resp.json()['signing_url']
+    return resp.json()["signing_url"]
 
 
-def get_boldsign_signing_url(request_id):
-    """
-    Fetches the signing URL for a given BoldSign request.
-    """
-    resp = requests.get(
-        f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
-        auth=(app.config['BOLD_API_KEY'], app.config['BOLD_API_SECRET'])
-    )
-    resp.raise_for_status()
-    return resp.json()['signing_url']
 
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
