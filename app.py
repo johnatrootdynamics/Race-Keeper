@@ -880,52 +880,52 @@ def event_info(event_id):
 
 
 def create_boldsign_request(driver_id, event_id):
-    api_key  = app.config.get('BOLD_API_KEY')
-    template = app.config.get('BOLD_TEMPLATE_ID')
-    base     = app.config.get('BOLD_API_BASE')
-
-    if not api_key or not template:
-        abort(500, "BoldSign API key or template ID not set")
-
-    # pull driver data however you do
+    """
+    Sends your waiver template to BoldSign via the /template/send endpoint.
+    Returns the returned documentId (not a ‘request_id’).
+    """
     driver = get_driver_data(driver_id)
-
+    url = f"{app.config['BOLD_API_BASE']}/template/send"
+    params = {"templateId": app.config['BOLD_TEMPLATE_ID']}
     payload = {
-        "template_id": template,
-        "signers": [{
-            "name":  f"{driver['first_name']} {driver['last_name']}",
-            "email": f"{driver['username']}@example.com",
-            "role":  "Racer"
-        }],
-        "client_redirect_url": url_for(
-            'driver_profile',
-            driver_id=driver_id,
-            event_id=event_id,
-            _external=True
-        )
+        "disableEmails": True,
+        "roles": [{
+            "roleIndex": 1,
+            "signerName": f"{driver['first_name']} {driver['last_name']}",
+            "signerEmail": driver['username'] + "@example.com",
+            "privateMessage": "Please sign the waiver.",
+            "signerType": "Signer",
+            "formFields": [{
+                "fieldType": "Signature",
+                "pageNumber": 1,
+                "bounds": {"x": 100, "y": 100, "width": 200, "height": 50},
+                "isRequired": True
+            }]
+        }]
     }
-
     headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type":  "application/json"
+        "accept": "application/json",
+        "X-API-KEY": app.config['BOLD_API_KEY'],
+        "Content-Type": "application/json"
     }
-
-    resp = requests.post(f"{base}/signing-requests", json=payload, headers=headers)
+    resp = requests.post(url, headers=headers, params=params, json=payload)
     resp.raise_for_status()
-    return resp.json()["request_id"]
+    return resp.json()["documentId"]
 
 
-def get_boldsign_signing_url(request_id):
-    api_key = app.config.get('BOLD_API_KEY')
-    base    = app.config.get('BOLD_API_BASE')
-
-    if not api_key:
-        abort(500, "BoldSign API key not set")
-
-    headers = {"Authorization": f"Bearer {api_key}"}
-    resp = requests.get(f"{base}/signing-requests/{request_id}", headers=headers)
+def get_boldsign_signing_url(document_id, signer_email):
+    """
+    Fetches an embedded signing link for a document via /document/getEmbeddedSignLink.
+    """
+    url = f"{app.config['BOLD_API_BASE']}/document/getEmbeddedSignLink"
+    params = {"documentId": document_id, "signerEmail": signer_email}
+    headers = {
+        "accept": "application/json",
+        "X-API-KEY": app.config['BOLD_API_KEY']
+    }
+    resp = requests.get(url, headers=headers, params=params)
     resp.raise_for_status()
-    return resp.json()["signing_url"]
+    return resp.json()["signLink"]
 
 
 
@@ -937,22 +937,30 @@ def start_waiver(driver_id, event_id):
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
-    # create the BoldSign request
-    req_id = create_boldsign_request(driver_id, event_id)
+    # 1) create the BoldSign document and get its ID
+    document_id = create_boldsign_request(driver_id, event_id)
 
-    # save the request_id on that check_in row (insert if needed)
+    # 2) update—or insert if no row exists—your check_ins waiver_request_id
     cur = mysql.connection.cursor()
     cur.execute("""
         UPDATE check_ins
            SET waiver_request_id = %s
          WHERE driver_id = %s
            AND event_id   = %s
-    """, (req_id, driver_id, event_id))
+    """, (document_id, driver_id, event_id))
+    if cur.rowcount == 0:
+        cur.execute("""
+            INSERT INTO check_ins (driver_id, event_id, waiver_request_id)
+            VALUES (%s, %s, %s)
+        """, (driver_id, event_id, document_id))
     mysql.connection.commit()
     cur.close()
 
-    # redirect user to the BoldSign signing page
-    return redirect(get_boldsign_signing_url(req_id))
+    # 3) fetch the driver’s email and redirect them to sign
+    driver = get_driver_data(driver_id)
+    signer_email = f"{driver['username']}@example.com"
+    signing_url = get_boldsign_signing_url(document_id, signer_email)
+    return redirect(signing_url)
 
 
 @app.route('/boldsign/webhook', methods=['POST'])
