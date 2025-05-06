@@ -11,6 +11,7 @@ import qrcode
 from minio import Minio
 from datetime import datetime
 from functools import wraps
+import requests
 
 
 app = Flask(__name__)
