@@ -107,41 +107,45 @@
           </form>
         </div>
 
-        <!-- Name, class & today's statuses -->
+        <!-- Name, class & today's events -->
         <div class="col">
           <h2 class="mb-1">{{ driver.first_name }} {{ driver.last_name }}</h2>
           <span class="badge bg-primary fs-6">Class {{ driver.class }}</span>
 
+          <h5 class="mt-4">Today's Events</h5>
           {% if today_checkins %}
-            {% for ci in today_checkins %}
-              <div class="mt-2">
-                {# Check-in status #}
-                {% if ci.checked_in %}
-                  <span class="d-inline-block px-2 py-1 bg-success text-white rounded">
-                    Checked in at {{ ci.check_in_time.strftime('%Y-%m-%d %H:%M:%S') }}
-                  </span>
-                {% else %}
-                  <span class="d-inline-block px-2 py-1 bg-danger text-white rounded">
-                    Not checked in
-                  </span>
-                {% endif %}
-              </div>
-              <div class="mt-2">
-                {# Waiver status #}
-                {% if ci.waiver_signed %}
-                  <span class="d-inline-block px-2 py-1 bg-success text-white rounded">
-                    ✓ Waiver signed for {{ ci.event_name }}
-                  </span>
-                {% else %}
-                  <a href="{{ url_for('start_waiver', driver_id=driver.id, event_id=ci.event_id) }}"
-                     class="btn btn-outline-primary btn-sm">
-                    Sign Waiver for {{ ci.event_name }}
-                  </a>
-                {% endif %}
-              </div>
-            {% endfor %}
+            <ul class="list-group">
+              {% for ci in today_checkins %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ ci.event_name }}</strong><br>
+                    <small class="text-muted">
+                      {{ ci.event_datetime.strftime('%-I:%M %p') }}
+                    </small>
+                  </div>
+                  <div class="text-end">
+                    {# Waiver #}
+                    {% if ci.waiver_signed %}
+                      <span class="badge bg-success me-1">✓ Waiver</span>
+                    {% else %}
+                      <a href="{{ url_for('start_waiver', driver_id=driver.id, event_id=ci.event_id) }}"
+                         class="btn btn-sm btn-outline-primary me-1">
+                        Sign Waiver
+                      </a>
+                    {% endif %}
+
+                    {# Check-in #}
+                    {% if ci.checked_in %}
+                      <span class="badge bg-success">Checked In</span>
+                    {% else %}
+                      <span class="badge bg-danger">Not In</span>
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
           {% else %}
-            <div class="mt-2 text-muted">No event scheduled for today.</div>
+            <p class="text-muted">No events scheduled for today.</p>
           {% endif %}
         </div>
 
