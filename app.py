@@ -926,9 +926,7 @@ def get_boldsign_signing_url(document_id, signer_email, driver_id, event_id):
     # Build your return URL: send them back to their profile/event page
     return_url = url_for(
         'driver_profile',
-        driver_id=driver_id,
-        event_id=event_id,
-        _external=True
+        driver_id=driver_id
     )
 
     params = {
