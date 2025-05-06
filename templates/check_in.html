@@ -5,12 +5,34 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Driver Check-In</title>
+
+  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
   <style>
-    body { background: linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%); min-height:100vh; display:flex; flex-direction:column; }
-    .check-wrapper { flex:1 0 auto; padding:2rem 1rem; }
-    .check-card { border:none; border-radius:1rem; box-shadow:0 4px 24px rgba(0,0,0,.1); }
-    #qr-reader { max-width:500px; margin:1rem auto 0; }
+    /* ---------- Page background ---------- */
+    body {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* ---------- Wrapper ---------- */
+    .check-wrapper {
+      flex: 1 0 auto;
+      padding: 2rem 1rem;
+    }
+    /* ---------- Card ---------- */
+    .check-card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+    /* ---------- QR Reader Box ---------- */
+    #qr-reader {
+      max-width: 500px;
+      margin: 1rem auto 0;
+    }
   </style>
 </head>
 <body>
@@ -20,47 +42,52 @@
     <div class="card check-card p-4">
       <h2 class="text-center mb-4">Driver Check-In</h2>
 
-      <!-- flashes -->
+      <!-- Flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          {% for category, msg in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show">
-              {{ msg }}
-              <button class="btn-close" data-bs-dismiss="alert"></button>
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           {% endfor %}
         {% endif %}
       {% endwith %}
 
-      <!-- STEP 1: Choose Event & Lookup Driver -->
-      <form method="post" class="needs-validation" novalidate>
-        <!-- events radio -->
-        <div class="mb-3">
+      <!-- Lookup & Select Event form -->
+      <form action="{{ url_for('check_in') }}" method="post" class="needs-validation" novalidate>
+        <!-- 1) Event Selector as big cards -->
+        <div class="mb-4">
           <label class="form-label">Select Event</label>
-          {% for event in events %}
-            <div class="form-check">
-              <input class="form-check-input"
-                     type="radio"
-                     name="event_id"
-                     id="event_{{ event.id }}"
-                     value="{{ event.id }}"
-                     required
-                     {% if event.id|string == selected_event_id %}checked{% endif %}>
-              <label class="form-check-label" for="event_{{ event.id }}">
-                {{ event.event_name }} – {{ event.event_date.strftime('%Y-%m-%d') }}
-              </label>
-            </div>
-          {% endfor %}
+          <div class="row g-3">
+            {% for event in events %}
+              <div class="col-md-6">
+                <input type="radio"
+                       class="btn-check"
+                       name="event_id"
+                       id="event_{{ event.id }}"
+                       value="{{ event.id }}"
+                       autocomplete="off"
+                       required
+                       {% if event.id|string == driver_id|string %}checked{% endif %}>
+                <label class="btn btn-outline-primary w-100 p-3 text-start"
+                       for="event_{{ event.id }}">
+                  <div class="fw-bold">{{ event.event_name }}</div>
+                  <small class="text-muted">{{ event.event_date.strftime('%Y-%m-%d') }}</small>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
           <div class="invalid-feedback">Please select an event.</div>
         </div>
 
-        <!-- driver lookup -->
+        <!-- 2) Driver lookup -->
         <div class="input-group mb-3">
           <input type="text"
                  class="form-control form-control-lg"
                  placeholder="Driver ID"
-                 name="driver_id"
                  id="driver_id"
+                 name="driver_id"
                  value="{{ driver_id or '' }}"
                  required>
           <button class="btn btn-outline-primary" type="button" id="scanQRButton">Scan QR</button>
@@ -70,26 +97,26 @@
         <button type="submit" class="btn btn-primary w-100">Look Up</button>
       </form>
 
-      <!-- STEP 2: If driver found, show cars + final check-in -->
-      {% if driver %}
+      {% if driver_id %}
         <hr class="my-4" />
         <h3 class="text-center mb-3">{{ driver.first_name }} {{ driver.last_name }}</h3>
-        <form action="{{ url_for('final_check_in') }}" method="post" class="needs-validation" novalidate>
-          <!-- carry forward -->
-          <input type="hidden" name="event_id" value="{{ selected_event_id }}">
-          <input type="hidden" name="driver_id" value="{{ driver_id }}">
+        <form action="{{ url_for('final_check_in') }}" method="post"
+              class="row g-3 needs-validation" novalidate>
+          <input type="hidden" name="driver_id" value="{{ driver_id }}" />
+          <input type="hidden" name="event_id" value="{{ selected_event_id or driver_id }}" />
 
-          <div class="mb-3">
-            <label class="form-label">Select Car</label>
-            <select name="car_id" class="form-select" required>
+          <div class="col-md-6">
+            <label for="car_id" class="form-label">Select a Car</label>
+            <select id="car_id" name="car_id" class="form-select" required>
               {% for car in cars %}
                 <option value="{{ car.id }}">{{ car.make }} {{ car.model }}</option>
               {% endfor %}
             </select>
-            <div class="invalid-feedback">Please select a car.</div>
           </div>
 
-          <button type="submit" class="btn btn-success w-100">Check-In</button>
+          <div class="col-12">
+            <button type="submit" class="btn btn-success w-100">Check-In</button>
+          </div>
         </form>
       {% endif %}
 
@@ -99,26 +126,30 @@
     </div>
   </main>
 
+  <footer class="footer mt-auto text-center">
+    <p>© 2024 Your Web App. All rights reserved.</p>
+  </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // QR‐scanner
       const scanBtn = document.getElementById('scanQRButton');
-      const qrReader = document.getElementById('qr-reader');
+      const qrReaderElem = document.getElementById('qr-reader');
       const driverField = document.getElementById('driver_id');
-      let scanner;
+      let qrScanner;
+
       scanBtn.addEventListener('click', () => {
-        if (!scanner) scanner = new Html5Qrcode('qr-reader');
-        qrReader.classList.remove('d-none');
-        scanner.start(
+        if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader');
+        qrReaderElem.classList.remove('d-none');
+        qrScanner.start(
           { facingMode: 'environment' },
           { fps: 10, qrbox: 250 },
-          text => {
-            const m = text.match(/Driver-ID:\s*(\S+)/i);
-            driverField.value = m ? m[1] : text;
-            scanner.stop();
-            qrReader.classList.add('d-none');
+          decodedText => {
+            const m = decodedText.match(/Driver-ID:\s*(\S+)/i);
+            driverField.value = m ? m[1].trim() : decodedText.trim();
+            qrScanner.stop();
+            qrReaderElem.classList.add('d-none');
           },
           err => console.error(err)
         ).catch(console.error);
@@ -127,7 +158,8 @@
       // Bootstrap validation
       (() => {
         'use strict';
-        document.querySelectorAll('.needs-validation').forEach(form => {
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
           form.addEventListener('submit', e => {
             if (!form.checkValidity()) {
               e.preventDefault();
