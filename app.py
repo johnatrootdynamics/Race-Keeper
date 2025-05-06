@@ -53,6 +53,13 @@ login_manager.login_view = 'login'
 roles = ["user","admin"]
 
 
+@app.template_global()
+def get_all_drivers():
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute("SELECT id, first_name, last_name FROM drivers")
+    ds = cur.fetchall()
+    cur.close()
+    return ds
 
 #To pull profile picture for navbar
 @app.context_processor
