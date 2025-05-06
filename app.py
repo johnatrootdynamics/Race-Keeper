@@ -933,53 +933,45 @@ def get_boldsign_signing_url(document_id, signer_email):
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
-    # only the driver or an admin can launch this
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
-    # 1) create the BoldSign document and get its ID
+    # create the BoldSign document
     document_id = create_boldsign_request(driver_id, event_id)
 
-    # 2) update—or insert if no row exists—your check_ins waiver_request_id
+    # store it in your new 'waivers' table (see next section)
     cur = mysql.connection.cursor()
     cur.execute("""
-        UPDATE check_ins
-           SET waiver_request_id = %s
-         WHERE driver_id = %s
-           AND event_id   = %s
-    """, (document_id, driver_id, event_id))
-    if cur.rowcount == 0:
-        cur.execute("""
-            INSERT INTO check_ins (driver_id, event_id, waiver_request_id)
-            VALUES (%s, %s, %s)
-        """, (driver_id, event_id, document_id))
+      INSERT INTO waivers (driver_id, event_id, document_id)
+      VALUES (%s, %s, %s)
+      ON DUPLICATE KEY UPDATE document_id = VALUES(document_id), signed = FALSE
+    """, (driver_id, event_id, document_id))
     mysql.connection.commit()
     cur.close()
 
-    # 3) fetch the driver’s email and redirect them to sign
+    # fetch the embedded signing link
     driver = get_driver_data(driver_id)
     signer_email = f"{driver['username']}@example.com"
-    signing_url = get_boldsign_signing_url(document_id, signer_email)
-    return redirect(signing_url)
+    signing_url  = get_boldsign_signing_url(document_id, signer_email)
+
+    # render inside an <iframe>
+    return render_template('waiver_embed.html', signing_url=signing_url)
 
 
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
-    """
-    BoldSign will POST here when the document status changes.
-    We look for 'completed' and mark waiver_signed = TRUE.
-    """
-    data = request.json or {}
-    req_id = data.get('request_id')
-    status = data.get('status')
+    data      = request.json or {}
+    doc_id    = data.get('documentId') or data.get('request_id')
+    status    = data.get('status')
 
-    if status == 'completed' and req_id:
+    if status == 'completed' and doc_id:
         cur = mysql.connection.cursor()
         cur.execute("""
-            UPDATE check_ins
-               SET waiver_signed = TRUE
-             WHERE waiver_request_id = %s
-        """, (req_id,))
+          UPDATE waivers
+             SET signed = TRUE,
+                 signed_at = NOW()
+           WHERE document_id = %s
+        """, (doc_id,))
         mysql.connection.commit()
         cur.close()
 
@@ -994,52 +986,47 @@ def final_check_in():
     car_id    = request.form.get('car_id')
     event_id  = request.form.get('event_id')
 
-    if not (driver_id and car_id and event_id):
-        flash('Missing fields', 'danger')
-        return redirect(url_for('check_in'))
-
-    cur = mysql.connection.cursor(DictCursor)
-
-    # 1) Ensure waiver is signed
+    # 1) Ensure waiver exists and is signed
+    cur = mysql.connection.cursor()
     cur.execute("""
-        SELECT waiver_signed
-          FROM check_ins
-         WHERE driver_id = %s
-           AND event_id   = %s
+      SELECT signed
+        FROM waivers
+       WHERE driver_id = %s
+         AND event_id  = %s
     """, (driver_id, event_id))
     row = cur.fetchone()
-    if not row or not row['waiver_signed']:
-        flash('Cannot check in: waiver not signed yet.', 'danger')
-        cur.close()
-        return redirect(url_for('event_check_ins', event_id=event_id))
+    if not row:
+        flash('Cannot check in: waiver not started.', 'danger')
+        return redirect(url_for('events.event_check_ins', event_id=event_id))
+    if not row['signed']:
+        flash('Cannot check in: waiver not yet signed.', 'danger')
+        return redirect(url_for('events.event_check_ins', event_id=event_id))
 
-    # 2) Prevent duplicate
+    # 2) Prevent duplicate check-in
     cur.execute("""
-        SELECT checked_in
-          FROM check_ins
-         WHERE driver_id = %s
-           AND event_id   = %s
-        ORDER BY check_in_time DESC
-        LIMIT 1
+      SELECT checked_in
+        FROM check_ins
+       WHERE driver_id = %s
+         AND event_id  = %s
+       ORDER BY check_in_time DESC
+       LIMIT 1
     """, (driver_id, event_id))
     last = cur.fetchone()
     if last and last['checked_in']:
         flash('Car already checked in.', 'warning')
-        cur.close()
-        return redirect(url_for('event_check_ins', event_id=event_id))
+        return redirect(url_for('events.event_check_ins', event_id=event_id))
 
-    # 3) Insert check-in, carry over waiver flags
+    # 3) Insert the actual check-in
     cur.execute("""
-        INSERT INTO check_ins
-            (driver_id, car_id, event_id, checked_in, waiver_signed, waiver_request_id)
-        VALUES (%s, %s, %s, TRUE, TRUE, %s)
-    """, (driver_id, car_id, event_id, row.get('waiver_request_id')))
+      INSERT INTO check_ins
+        (driver_id, car_id, event_id, checked_in)
+      VALUES (%s, %s, %s, TRUE)
+    """, (driver_id, car_id, event_id))
     mysql.connection.commit()
     cur.close()
 
     flash('Driver checked in successfully!', 'success')
-    return redirect(url_for('event_check_ins', event_id=event_id))
-
+    return redirect(url_for('events.event_check_ins', event_id=event_id))
 
     
 if __name__ == '__main__':
