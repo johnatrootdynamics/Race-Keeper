@@ -131,59 +131,6 @@ def boldsign_webhook():
     return jsonify({'received': True}), 200
 
 
-@app.route('/final_check_in', methods=['POST'])
-@login_required
-@role_required('admin')
-def final_check_in():
-    driver_id = request.form.get('driver_id')
-    car_id    = request.form.get('car_id')
-    event_id  = request.form.get('event_id')
-
-    if not (driver_id and car_id and event_id):
-        flash('Missing fields', 'danger')
-        return redirect(url_for('check_in'))
-
-    cur = mysql.connection.cursor(DictCursor)
-
-    # 1) Ensure waiver is signed
-    cur.execute("""
-        SELECT waiver_signed
-          FROM check_ins
-         WHERE driver_id = %s
-           AND event_id   = %s
-    """, (driver_id, event_id))
-    row = cur.fetchone()
-    if not row or not row['waiver_signed']:
-        flash('Cannot check in: waiver not signed yet.', 'danger')
-        cur.close()
-        return redirect(url_for('event_check_ins', event_id=event_id))
-
-    # 2) Prevent duplicate
-    cur.execute("""
-        SELECT checked_in
-          FROM check_ins
-         WHERE driver_id = %s
-           AND event_id   = %s
-        ORDER BY check_in_time DESC
-        LIMIT 1
-    """, (driver_id, event_id))
-    last = cur.fetchone()
-    if last and last['checked_in']:
-        flash('Car already checked in.', 'warning')
-        cur.close()
-        return redirect(url_for('event_check_ins', event_id=event_id))
-
-    # 3) Insert check-in, carry over waiver flags
-    cur.execute("""
-        INSERT INTO check_ins
-            (driver_id, car_id, event_id, checked_in, waiver_signed, waiver_request_id)
-        VALUES (%s, %s, %s, TRUE, TRUE, %s)
-    """, (driver_id, car_id, event_id, row.get('waiver_request_id')))
-    mysql.connection.commit()
-    cur.close()
-
-    flash('Driver checked in successfully!', 'success')
-    return redirect(url_for('event_check_ins', event_id=event_id))
 
 
 mysql = MySQL(app)
@@ -1044,6 +991,59 @@ def start_waiver(driver_id, event_id):
 
     # 3) Redirect user to the BoldSign URL
     return redirect(get_boldsign_signing_url(request_id))
+@app.route('/final_check_in', methods=['POST'])
+@login_required
+@role_required('admin')
+def final_check_in():
+    driver_id = request.form.get('driver_id')
+    car_id    = request.form.get('car_id')
+    event_id  = request.form.get('event_id')
+
+    if not (driver_id and car_id and event_id):
+        flash('Missing fields', 'danger')
+        return redirect(url_for('check_in'))
+
+    cur = mysql.connection.cursor(DictCursor)
+
+    # 1) Ensure waiver is signed
+    cur.execute("""
+        SELECT waiver_signed
+          FROM check_ins
+         WHERE driver_id = %s
+           AND event_id   = %s
+    """, (driver_id, event_id))
+    row = cur.fetchone()
+    if not row or not row['waiver_signed']:
+        flash('Cannot check in: waiver not signed yet.', 'danger')
+        cur.close()
+        return redirect(url_for('event_check_ins', event_id=event_id))
+
+    # 2) Prevent duplicate
+    cur.execute("""
+        SELECT checked_in
+          FROM check_ins
+         WHERE driver_id = %s
+           AND event_id   = %s
+        ORDER BY check_in_time DESC
+        LIMIT 1
+    """, (driver_id, event_id))
+    last = cur.fetchone()
+    if last and last['checked_in']:
+        flash('Car already checked in.', 'warning')
+        cur.close()
+        return redirect(url_for('event_check_ins', event_id=event_id))
+
+    # 3) Insert check-in, carry over waiver flags
+    cur.execute("""
+        INSERT INTO check_ins
+            (driver_id, car_id, event_id, checked_in, waiver_signed, waiver_request_id)
+        VALUES (%s, %s, %s, TRUE, TRUE, %s)
+    """, (driver_id, car_id, event_id, row.get('waiver_request_id')))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Driver checked in successfully!', 'success')
+    return redirect(url_for('event_check_ins', event_id=event_id))
 
 
     
