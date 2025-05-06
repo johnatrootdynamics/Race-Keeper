@@ -969,6 +969,8 @@ def start_waiver(driver_id, event_id):
 
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
+    payload = request.get_json(force=True, silent=True) or {}
+    app.logger.info("🔔 BoldSign webhook received payload: %s", payload)
     data        = request.get_json(force=True, silent=True) or {}
     document_id = data.get('documentId')        # BoldSign uses "documentId"
     status      = data.get('status', '').upper()
