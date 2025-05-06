@@ -16,6 +16,10 @@ from requests.auth import HTTPBasicAuth
 
 
 app = Flask(__name__)
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True
+)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 # Configure MySQL
@@ -965,22 +969,23 @@ def start_waiver(driver_id, event_id):
 
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
-    data      = request.json or {}
-    doc_id    = data.get('documentId') or data.get('request_id')
-    status    = data.get('status')
+    data        = request.get_json(force=True, silent=True) or {}
+    document_id = data.get('documentId')        # BoldSign uses "documentId"
+    status      = data.get('status', '').upper()
 
-    if status == 'completed' and doc_id:
+    # Only update on COMPLETED
+    if document_id and status == 'COMPLETED':
         cur = mysql.connection.cursor()
         cur.execute("""
-          UPDATE waivers
-             SET signed = TRUE,
-                 signed_at = NOW()
-           WHERE document_id = %s
-        """, (doc_id,))
+            UPDATE waivers
+               SET signed     = TRUE,
+                   signed_at  = NOW()
+             WHERE document_id = %s
+        """, (document_id,))
         mysql.connection.commit()
         cur.close()
 
-    return jsonify({'received': True}), 200
+    return '', 200
 
 
 @app.route('/final_check_in', methods=['POST'])
