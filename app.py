@@ -997,10 +997,10 @@ def final_check_in():
     row = cur.fetchone()
     if not row:
         flash('Cannot check in: waiver not started.', 'danger')
-        return redirect(url_for('events.event_check_ins', event_id=event_id))
+        return redirect(url_for('event_check_ins', event_id=event_id))
     if not row['signed']:
         flash('Cannot check in: waiver not yet signed.', 'danger')
-        return redirect(url_for('events.event_check_ins', event_id=event_id))
+        return redirect(url_for('event_check_ins', event_id=event_id))
 
     # 2) Prevent duplicate check-in
     cur.execute("""
