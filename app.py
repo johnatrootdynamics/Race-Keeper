@@ -313,15 +313,15 @@ def driver_profile(driver_id):
     cur.execute("SELECT * FROM cars WHERE driver_id = %s", (driver_id,))
     cars = cur.fetchall()
 
-    # 2) today’s events + check-in + waiver status
+    # 2) today’s events + check-in + waiver status + event time
     today = datetime.now().date()
     cur.execute("""
         SELECT
-          e.id                            AS event_id,
-          e.event_name                    AS event_name,
-          COALESCE(ci.checked_in, FALSE)  AS checked_in,
-          ci.check_in_time                AS check_in_time,
-          COALESCE(w.signed, FALSE)       AS waiver_signed
+          e.id                           AS event_id,
+          e.event_name                   AS event_name,
+          e.event_date                   AS event_datetime,
+          COALESCE(ci.checked_in, FALSE) AS checked_in,
+          COALESCE(w.signed,    FALSE)   AS waiver_signed
         FROM events e
         LEFT JOIN check_ins ci
           ON ci.event_id = e.id
@@ -330,6 +330,7 @@ def driver_profile(driver_id):
           ON w.event_id  = e.id
          AND w.driver_id = %s
         WHERE DATE(e.event_date) = %s
+        ORDER BY e.event_date
     """, (driver_id, driver_id, today))
     today_checkins = cur.fetchall()
 
