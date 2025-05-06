@@ -293,6 +293,7 @@ def driver_profile(driver_id):
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
+    # handle new note submission
     if request.method == 'POST':
         note_text = request.form.get('note_text')
         if note_text:
@@ -305,31 +306,34 @@ def driver_profile(driver_id):
             cur.close()
 
     cur = mysql.connection.cursor(DictCursor)
-    # driver & cars as before
+
+    # 1) driver & cars
     cur.execute("SELECT * FROM drivers WHERE id = %s", (driver_id,))
     driver = cur.fetchone()
     cur.execute("SELECT * FROM cars WHERE driver_id = %s", (driver_id,))
     cars = cur.fetchall()
 
-    # ← New: fetch only today's event(s) with check-in status
+    # 2) today’s events + check-in + waiver status
     today = datetime.now().date()
     cur.execute("""
         SELECT
-          e.id           AS event_id,
-          e.event_name,
-          COALESCE(ci.checked_in, FALSE) AS checked_in,
-          ci.check_in_time
+          e.id                            AS event_id,
+          e.event_name                    AS event_name,
+          COALESCE(ci.checked_in, FALSE)  AS checked_in,
+          ci.check_in_time                AS check_in_time,
+          COALESCE(w.signed, FALSE)       AS waiver_signed
         FROM events e
         LEFT JOIN check_ins ci
           ON ci.event_id = e.id
          AND ci.driver_id = %s
+        LEFT JOIN waivers w
+          ON w.event_id  = e.id
+         AND w.driver_id = %s
         WHERE DATE(e.event_date) = %s
-        """,
-        (driver_id, today)
-    )
+    """, (driver_id, driver_id, today))
     today_checkins = cur.fetchall()
 
-    # notes as before
+    # 3) notes
     cur.execute("""
         SELECT * FROM notes
          WHERE driver_id = %s
@@ -346,8 +350,6 @@ def driver_profile(driver_id):
         notes=notes,
         today_checkins=today_checkins
     )
-
-from MySQLdb.cursors import DictCursor
 
 
 
