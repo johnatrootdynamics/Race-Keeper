@@ -1,0 +1,19 @@
+<!-- templates/waiver_embed.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Waiver</title>
+  <style> 
+    body, html { margin:0; padding:0; height:100%; }
+    iframe { width:100%; height:100%; border:none; }
+  </style>
+</head>
+<body>
+  <iframe src="{{ signing_url }}"></iframe>
+  <!-- (Optional) provide a link back if embedding is blocked: -->
+  <noscript>
+    <p>Please <a href="{{ signing_url }}" target="_blank">click here</a> to sign your waiver.</p>
+  </noscript>
+</body>
+</html>
