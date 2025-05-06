@@ -12,6 +12,7 @@ from minio import Minio
 from datetime import datetime
 from functools import wraps
 import requests
+from requests.auth import HTTPBasicAuth
 
 
 app = Flask(__name__)
@@ -879,31 +880,53 @@ def create_boldsign_request(driver_id, event_id):
     Creates a BoldSign signing request based on a reusable Waiver template.
     Returns the BoldSign request_id string.
     """
-    # fetch driver info for name/email
     driver = get_driver_data(driver_id)
     payload = {
         "template_id": app.config['BOLD_TEMPLATE_ID'],
         "signers": [
             {
                 "name":  f"{driver['first_name']} {driver['last_name']}",
-                "email": driver['username'] + "@example.com",  # or your field
+                "email": driver['username'] + "@example.com",
                 "role":  "Racer"
             }
         ],
-        # after signing, user will get sent back here:
-        "client_redirect_url": url_for('driver_profile',
-                                       driver_id=driver_id,
-                                       event_id=event_id,
-                                       _external=True)
+        "client_redirect_url": url_for(
+            'driver_profile',
+            driver_id=driver_id,
+            event_id=event_id,
+            _external=True
+        )
     }
+
+    auth = HTTPBasicAuth(
+        app.config['BOLD_API_KEY'],
+        app.config['BOLD_API_SECRET']
+    )
 
     resp = requests.post(
         f"{app.config['BOLD_API_BASE']}/signing-requests",
         json=payload,
-        auth=(app.config['BOLD_API_KEY'])
+        auth=auth
     )
     resp.raise_for_status()
     return resp.json()['request_id']
+
+
+def get_boldsign_signing_url(request_id):
+    """
+    Fetches the signing URL for a given BoldSign request.
+    """
+    auth = HTTPBasicAuth(
+        app.config['BOLD_API_KEY'],
+        app.config['BOLD_API_SECRET']
+    )
+
+    resp = requests.get(
+        f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
+        auth=auth
+    )
+    resp.raise_for_status()
+    return resp.json()['signing_url']
 
 
 def get_boldsign_signing_url(request_id):
