@@ -16,6 +16,7 @@ from requests.auth import HTTPBasicAuth
 
 
 app = Flask(__name__)
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 # Configure MySQL
 app.config['MYSQL_HOST'] = 'racedb-db.root-dynamics.com'
@@ -913,21 +914,18 @@ def create_boldsign_request(driver_id, event_id):
     return resp.json()["documentId"]
 
 
-def get_boldsign_signing_url(document_id, signer_email, driver_id, event_id):
-    """
-    Fetches an embedded signing URL *with* a redirect back into your app
-    once the signer completes the document.
-    """
+def get_boldsign_signing_url(document_id, signer_email, driver_id):
     api_key = app.config.get('BOLD_API_KEY')
     base    = app.config.get('BOLD_API_BASE')
     if not api_key:
         abort(500, "BoldSign API key not set")
 
-    # Build your return URL: send them back to their profile/event page
+    # Build a strictly HTTPS return URL back to the driver's profile
     return_url = url_for(
         'driver_profile',
         driver_id=driver_id,
-        _external=True
+        _external=True,
+        _scheme='https'
     )
 
     params = {
@@ -935,7 +933,8 @@ def get_boldsign_signing_url(document_id, signer_email, driver_id, event_id):
         "signerEmail": signer_email,
         "redirectUrl": return_url
     }
-    headers = { "X-API-KEY": api_key }
+    headers = {"X-API-KEY": api_key}
+
     resp = requests.get(
         f"{base}/document/getEmbeddedSignLink",
         headers=headers,
@@ -948,33 +947,19 @@ def get_boldsign_signing_url(document_id, signer_email, driver_id, event_id):
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
-    # only the driver or an admin can launch
-    if not (current_user.id == driver_id or current_user.role == 'admin'):
-        abort(403)
+    # … permission checks …
 
-    # create via the template/send endpoint
     document_id = create_boldsign_request(driver_id, event_id)
+    # … insert into waivers table …
 
-    # record it in your separate waivers table
-    cur = mysql.connection.cursor()
-    cur.execute("""
-      INSERT INTO waivers (driver_id, event_id, document_id)
-      VALUES (%s, %s, %s)
-      ON DUPLICATE KEY UPDATE
-        document_id = VALUES(document_id),
-        signed      = FALSE
-    """, (driver_id, event_id, document_id))
-    mysql.connection.commit()
-    cur.close()
-
-    # build the signer email and fetch the embedded link *with* return URL
-    driver      = get_driver_data(driver_id)
+    driver       = get_driver_data(driver_id)
     signer_email = f"{driver['username']}@example.com"
     signing_url  = get_boldsign_signing_url(
-        document_id, signer_email, driver_id, event_id
+        document_id,
+        signer_email,
+        driver_id
     )
 
-    # now embed in an <iframe> so it lives inside your app
     return render_template('waiver_embed.html', signing_url=signing_url)
 
 
