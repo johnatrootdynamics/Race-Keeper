@@ -899,8 +899,7 @@ def create_boldsign_request(driver_id, event_id):
     }
 
     auth = HTTPBasicAuth(
-        app.config['BOLD_API_KEY'],
-        app.config['BOLD_API_SECRET']
+        app.config['BOLD_API_KEY']
     )
 
     resp = requests.post(
