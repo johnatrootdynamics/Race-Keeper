@@ -924,10 +924,11 @@ def get_boldsign_signing_url(document_id, signer_email, driver_id, event_id):
         abort(500, "BoldSign API key not set")
 
     # Build your return URL: send them back to their profile/event page
-    return_url = url_for(
-        'driver_profile',
-        driver_id=driver_id
-    )
+return_url = url_for(
+    'driver_profile',
+    driver_id=driver_id,
+    _external=True
+)
 
     params = {
         "documentId":  document_id,
