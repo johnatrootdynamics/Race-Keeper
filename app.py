@@ -1092,60 +1092,41 @@ def final_check_in():
 @login_required
 @role_required("admin")
 def check_in():
-    # ① load today's events
+    # 1) fetch today’s events
     events = get_events_for_today()
+    selected_event_id = None
+    driver_id = None
     driver = None
     cars = []
-    selected_event_id = None
 
     if request.method == 'POST':
-        driver_id = request.form.get('driver_id')
+        # 2) read event + driver from the same form
         selected_event_id = request.form.get('event_id')
+        driver_id = request.form.get('driver_id')
 
-        # ——— 1) Driver exists? ———
-        driver = get_driver_data(driver_id) if driver_id else None
-        if not driver:
-            flash('Please select a valid driver.', 'danger')
-            driver = None
-
-        # ——— 2) Driver has at least one car? ———
-        if driver:
-            cars = get_car_data_by_driver(driver_id)
-            if not cars:
-                flash('This driver has no cars. Please add one first.', 'danger')
-
-        # ——— 3) Event selected and valid? ———
         if not selected_event_id:
-            flash('Please select an event to check in.', 'danger')
+            flash("Please select an event to check in.", "danger")
+        elif not driver_id:
+            flash("Please enter a Driver ID.", "danger")
         else:
-            # ensure the chosen event is in today's list
-            if not any(str(e['id']) == selected_event_id for e in events):
-                flash('Selected event is not scheduled for today.', 'danger')
-
-        # ——— 4) Waiver signed? ———
-        if driver and cars and selected_event_id:
-            cur = mysql.connection.cursor(DictCursor)
-            cur.execute(
-                "SELECT signed FROM waivers WHERE driver_id = %s AND event_id = %s",
-                (driver_id, selected_event_id)
-            )
-            waiver = cur.fetchone()
-            cur.close()
-
-            if not waiver or not waiver['signed']:
-                flash('Cannot proceed: waiver not signed for this event.', 'danger')
-                # clear cars so admin can see the error and sign the waiver
-                cars = []
+            driver = get_driver_data(driver_id)
+            if not driver:
+                flash("Driver not found.", "danger")
+                driver = None
             else:
-                flash('All checks passed ✅—you can now select a car to finalize check-in.', 'success')
+                cars = get_car_data_by_driver(driver_id)
+                if not cars:
+                    flash("No cars found for this driver.", "danger")
 
     return render_template(
         'check_in.html',
         events=events,
+        selected_event_id=selected_event_id,
+        driver_id=driver_id,
         driver=driver,
-        cars=cars,
-        selected_event_id=selected_event_id
+        cars=cars
     )
+
 
     
 if __name__ == '__main__':
