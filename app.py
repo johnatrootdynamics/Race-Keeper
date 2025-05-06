@@ -988,29 +988,53 @@ def start_waiver(driver_id, event_id):
 
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
+    # 1) Capture the incoming JSON
     payload = request.get_json(force=True, silent=True) or {}
     app.logger.info("🔔 BoldSign webhook payload: %s", payload)
 
-    # BoldSign might send this top‐level or under `data`
-    req_id = payload.get('requestId') or payload.get('request_id') \
-          or payload.get('data', {}).get('requestId')
-    status = (payload.get('status') or payload.get('data', {}).get('status') or "").lower()
+    # 2) Pull out the documentId & status from whatever section BoldSign used
+    #    (in your payload it lives under payload['data']['documentId'])
+    data      = payload.get('data', {}) or {}
+    doc_block = payload.get('document', {}) or {}
+    document_id = (
+        data.get('documentId')
+        or data.get('document_id')
+        or doc_block.get('documentId')
+        or doc_block.get('document_id')
+    )
+    status = (
+        data.get('status')
+        or data.get('eventType')
+        or doc_block.get('status')
+        or ""
+    ).lower()
 
-    if req_id and status == 'completed':
+    if not document_id:
+        app.logger.error("❌ No documentId found in webhook payload")
+        return jsonify({"error": "missing documentId"}), 400
+
+    app.logger.info("ℹ️  Found document_id=%s status=%s", document_id, status)
+
+    # 3) Only when status shows Completed (or whatever your workflow calls it)
+    if status in ("completed", "signing_complete", "signed"):
         cur = mysql.connection.cursor()
-        cur.execute("""
-          UPDATE waivers
-             SET signed    = TRUE,
-                 signed_at = NOW()
-           WHERE document_id = %s
-        """, (req_id,))
+        rows = cur.execute("""
+            UPDATE waivers
+               SET signed    = TRUE,
+                   signed_at = NOW()
+             WHERE document_id = %s
+        """, (document_id,))
         mysql.connection.commit()
         cur.close()
-        app.logger.info("✅ Waiver marked signed for request_id=%s", req_id)
-    else:
-        app.logger.warning("⚠️ Ignored webhook for req_id=%s status=%s", req_id, status)
 
-    return jsonify({'received': True}), 200
+        if rows:
+            app.logger.info("✅ Marked waiver signed (rows updated: %d)", rows)
+        else:
+            app.logger.warning("⚠️ No waiver row found for document_id=%s", document_id)
+    else:
+        app.logger.warning("⚠️ Ignoring webhook for document_id=%s with status=%s", document_id, status)
+
+    return jsonify({"received": True}), 200
 
 
 
