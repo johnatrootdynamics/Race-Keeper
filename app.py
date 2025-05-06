@@ -33,27 +33,158 @@ BOLD_API = 'https://api.boldsign.com'
 API_KEY   = app.config['API_KEY'] = 'MzdkZDFmN2YtOWQwZS00YjM4LWIyYTUtMmFkNDdiMjMxZGMw'
 TEMPLATE_ID = 'e5c8f024-64df-4bdc-9142-3a04c01a154a'
 
+app.config['BOLD_API_BASE']    = "https://api.boldsign.com/v1"
+app.config['BOLD_API_KEY']     = "YOUR_BOLDSIGN_API_KEY"
+app.config['BOLD_API_SECRET']  = "YOUR_BOLDSIGN_SECRET"
+app.config['BOLD_TEMPLATE_ID'] = "YOUR_WAIVER_TEMPLATE_ID"
+
+
 def create_boldsign_request(driver_id, event_id):
+    """
+    Creates a BoldSign signing request based on a reusable Waiver template.
+    Returns the BoldSign request_id string.
+    """
+    # fetch driver info for name/email
+    driver = get_driver_data(driver_id)
     payload = {
-      "template_id": TEMPLATE_ID,
-      "signers": [
-        {
-          "name": get_driver_name(driver_id),
-          "email": get_driver_email(driver_id),
-          "role": "Racer"  # role within the document
-        }
-      ],
-      "client_redirect_url": url_for('check_in', event_id=event_id, _external=True),
-      # optional: webhooks for when they finish signing
+        "template_id": app.config['BOLD_TEMPLATE_ID'],
+        "signers": [
+            {
+                "name":  f"{driver['first_name']} {driver['last_name']}",
+                "email": driver['username'] + "@example.com",  # or your field
+                "role":  "Racer"
+            }
+        ],
+        # after signing, user will get sent back here:
+        "client_redirect_url": url_for('driver_profile',
+                                       driver_id=driver_id,
+                                       event_id=event_id,
+                                       _external=True)
     }
+
     resp = requests.post(
-        f"{BOLD_API}/v1/signing-requests",
+        f"{app.config['BOLD_API_BASE']}/signing-requests",
         json=payload,
-        auth=(API_KEY)
+        auth=(app.config['BOLD_API_KEY'], app.config['BOLD_API_SECRET'])
     )
     resp.raise_for_status()
-    data = resp.json()
-    return data['request_id']
+    return resp.json()['request_id']
+
+
+def get_boldsign_signing_url(request_id):
+    """
+    Fetches the signing URL for a given BoldSign request.
+    """
+    resp = requests.get(
+        f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
+        auth=(app.config['BOLD_API_KEY'], app.config['BOLD_API_SECRET'])
+    )
+    resp.raise_for_status()
+    return resp.json()['signing_url']
+
+
+@app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
+@login_required
+def start_waiver(driver_id, event_id):
+    # only the driver or an admin can launch this
+    if not (current_user.id == driver_id or current_user.role == 'admin'):
+        abort(403)
+
+    # create the BoldSign request
+    req_id = create_boldsign_request(driver_id, event_id)
+
+    # save the request_id on that check_in row (insert if needed)
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        UPDATE check_ins
+           SET waiver_request_id = %s
+         WHERE driver_id = %s
+           AND event_id   = %s
+    """, (req_id, driver_id, event_id))
+    mysql.connection.commit()
+    cur.close()
+
+    # redirect user to the BoldSign signing page
+    return redirect(get_boldsign_signing_url(req_id))
+
+
+@app.route('/boldsign/webhook', methods=['POST'])
+def boldsign_webhook():
+    """
+    BoldSign will POST here when the document status changes.
+    We look for 'completed' and mark waiver_signed = TRUE.
+    """
+    data = request.json or {}
+    req_id = data.get('request_id')
+    status = data.get('status')
+
+    if status == 'completed' and req_id:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            UPDATE check_ins
+               SET waiver_signed = TRUE
+             WHERE waiver_request_id = %s
+        """, (req_id,))
+        mysql.connection.commit()
+        cur.close()
+
+    return jsonify({'received': True}), 200
+
+
+@app.route('/final_check_in', methods=['POST'])
+@login_required
+@role_required('admin')
+def final_check_in():
+    driver_id = request.form.get('driver_id')
+    car_id    = request.form.get('car_id')
+    event_id  = request.form.get('event_id')
+
+    if not (driver_id and car_id and event_id):
+        flash('Missing fields', 'danger')
+        return redirect(url_for('check_in'))
+
+    cur = mysql.connection.cursor(DictCursor)
+
+    # 1) Ensure waiver is signed
+    cur.execute("""
+        SELECT waiver_signed
+          FROM check_ins
+         WHERE driver_id = %s
+           AND event_id   = %s
+    """, (driver_id, event_id))
+    row = cur.fetchone()
+    if not row or not row['waiver_signed']:
+        flash('Cannot check in: waiver not signed yet.', 'danger')
+        cur.close()
+        return redirect(url_for('event_check_ins', event_id=event_id))
+
+    # 2) Prevent duplicate
+    cur.execute("""
+        SELECT checked_in
+          FROM check_ins
+         WHERE driver_id = %s
+           AND event_id   = %s
+        ORDER BY check_in_time DESC
+        LIMIT 1
+    """, (driver_id, event_id))
+    last = cur.fetchone()
+    if last and last['checked_in']:
+        flash('Car already checked in.', 'warning')
+        cur.close()
+        return redirect(url_for('event_check_ins', event_id=event_id))
+
+    # 3) Insert check-in, carry over waiver flags
+    cur.execute("""
+        INSERT INTO check_ins
+            (driver_id, car_id, event_id, checked_in, waiver_signed, waiver_request_id)
+        VALUES (%s, %s, %s, TRUE, TRUE, %s)
+    """, (driver_id, car_id, event_id, row.get('waiver_request_id')))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Driver checked in successfully!', 'success')
+    return redirect(url_for('event_check_ins', event_id=event_id))
+
 
 mysql = MySQL(app)
 login_manager = LoginManager()
@@ -359,63 +490,6 @@ def driver_profile(driver_id):
 
 from MySQLdb.cursors import DictCursor
 
-@app.route('/final_check_in', methods=['POST'])
-@login_required
-@role_required('admin')
-def final_check_in():
-    driver_id = request.form.get('driver_id')
-    car_id    = request.form.get('car_id')
-    event_id  = request.form.get('event_id')
-
-    # Must have all three IDs
-    if not (driver_id and car_id and event_id):
-        flash('Check-in failed. Please ensure all fields are filled.', 'danger')
-        return redirect(url_for('check_in'))
-
-    cur = mysql.connection.cursor(DictCursor)
-
-    # ➊ Verify waiver has been signed for this event
-    cur.execute("""
-        SELECT waiver_signed
-          FROM check_ins
-         WHERE driver_id = %s
-           AND event_id   = %s
-    """, (driver_id, event_id))
-    waiver_row = cur.fetchone()
-
-    if not waiver_row or not waiver_row.get('waiver_signed'):
-        flash('Cannot check in: waiver not signed yet.', 'danger')
-        cur.close()
-        return redirect(url_for('event_check_ins', event_id=event_id))
-
-    # ➋ Prevent duplicate check-ins
-    cur.execute("""
-        SELECT checked_in
-          FROM check_ins
-         WHERE driver_id = %s
-           AND event_id   = %s
-        ORDER BY check_in_time DESC
-        LIMIT 1
-    """, (driver_id, event_id))
-    last = cur.fetchone()
-
-    if last and last.get('checked_in'):
-        flash('Car already checked in for today.', 'warning')
-        cur.close()
-        return redirect(url_for('event_check_ins', event_id=event_id))
-
-    # ➌ Perform the check-in
-    cur.execute("""
-        INSERT INTO check_ins
-            (driver_id, car_id, event_id, checked_in, waiver_signed, waiver_request_id)
-        VALUES
-            (%s, %s, %s, TRUE, TRUE, %s)
-    """, (driver_id, car_id, event_id, waiver_row.get('waiver_request_id')))
-    mysql.connection.commit()
-    cur.close()
-
-    flash('Driver checked in successfully!', 'success')
-    return redirect(url_for('event_check_ins', event_id=event_id))
 
 
 @app.route('/check_in', methods=['GET', 'POST'])
