@@ -124,6 +124,7 @@ def register():
         phone_number  = request.form['phone_number']
         dclass        = request.form['dclass']
         username      = request.form['username']
+        email         = request.form['email']          # ← NEW
         password      = request.form['password']
         hashed_pwd    = generate_password_hash(password, method='scrypt')
 
@@ -145,18 +146,18 @@ def register():
                 picture_path = f"{MINIO_API_HOST}/drivers/{filename}"
                 upload_object(filename, pic, size, 'drivers')
 
-        # insert—including the new role column!
+        # insert—including the new role and email columns!
         cur = mysql.connection.cursor()
         cur.execute("""
             INSERT INTO drivers
               (first_name, last_name, city, state, zip,
                date_of_birth, address, phone_number, picture_path,
-               class, username, password, role)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               class, username, email, password, role)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             first_name, last_name, city, state, zipcode,
             date_of_birth, address, phone_number, picture_path,
-            dclass, username, hashed_pwd, role
+            dclass, username, email, hashed_pwd, role      # ← email inserted here
         ))
         mysql.connection.commit()
         cur.close()
