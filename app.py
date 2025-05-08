@@ -300,7 +300,11 @@ def driver_profile(driver_id):
     # only the driver themself or an admin can view
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
-
+        
+        # If they’ve just come back from BoldSign:
+    status = request.args.get('status')
+    if status and status.lower() in ('signed', 'completed'):
+        flash('✅ Waiver signed successfully!', 'success')
     # handle new note submission
     if request.method == 'POST':
         note_text = request.form.get('note_text')
@@ -351,6 +355,8 @@ def driver_profile(driver_id):
     notes = cur.fetchall()
 
     cur.close()
+
+
 
     return render_template(
         'driver_profile.html',
