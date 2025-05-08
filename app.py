@@ -875,18 +875,20 @@ def event_info(event_id):
 
 def create_boldsign_request(driver_id, event_id):
     """
-    Creates a BoldSign signing request based on a reusable Waiver template.
-    Returns the BoldSign request_id string.
+    Creates a BoldSign signing request from a template.
+    Returns the request_id.
     """
     driver = get_driver_data(driver_id)
     payload = {
         "template_id": app.config['BOLD_TEMPLATE_ID'],
-        "signers": [{
-            "name":  f"{driver['first_name']} {driver['last_name']}",
-            "email": driver['email'],        # assuming you store email
-            "role":  "Racer"
-        }],
-        # after signing we'll come back here:
+        "signers": [
+            {
+                "name": f"{driver['first_name']} {driver['last_name']}",
+                # use whatever field holds their email
+                "email": driver['email'],  
+                "role": "Racer"
+            }
+        ],
         "client_redirect_url": url_for(
             'driver_profile',
             driver_id=driver_id,
@@ -894,59 +896,55 @@ def create_boldsign_request(driver_id, event_id):
         )
     }
 
-    # use HTTPBasicAuth with key:secret
-    auth = HTTPBasicAuth(
-        app.config['BOLD_API_KEY'],
-        app.config['BOLD_API_SECRET']
-    )
+    headers = {
+        "Authorization": f"ApiKey {app.config['BOLD_API_KEY']}",
+        "Content-Type": "application/json"
+    }
+    url = f"{app.config['BOLD_API_BASE']}/signing-requests"
 
-    # <<<<<< correct endpoint path is plural "signing-requests" >>>>>>
-    resp = requests.post(
-        f"{app.config['BOLD_API_BASE']}/signing-requests",
-        json=payload,
-        auth=auth
-    )
+    resp = requests.post(url, json=payload, headers=headers)
     resp.raise_for_status()
-    return resp.json()['request_id']
+    data = resp.json()
+    # BoldSign returns the ID as either 'request_id' or 'id'
+    return data.get('request_id') or data.get('id')
 
 
 def get_boldsign_signing_url(request_id):
     """
     Fetches the signing URL for a given BoldSign request.
     """
-    auth = HTTPBasicAuth(
-        app.config['BOLD_API_KEY'],
-        app.config['BOLD_API_SECRET']
-    )
-
-    resp = requests.get(
-        f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
-        auth=auth
-    )
+    headers = {
+        "Authorization": f"ApiKey {app.config['BOLD_API_KEY']}"
+    }
+    url = f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}"
+    resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    return resp.json()['signing_url']
+    data = resp.json()
+    # BoldSign may return it as 'signing_url' or 'signingUrl'
+    return data.get('signing_url') or data.get('signingUrl')
+
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
-    # only the driver or an admin can launch this
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
-    # 1) create (or upsert) the BoldSign request
+    # 1) create the BoldSign request
     req_id = create_boldsign_request(driver_id, event_id)
+
+    # 2) persist that request_id on your waivers table
     cur = mysql.connection.cursor()
     cur.execute("""
-        INSERT INTO waivers (driver_id, event_id, request_id)
-        VALUES (%s, %s, %s)
-        ON DUPLICATE KEY UPDATE request_id = %s
-    """, (driver_id, event_id, req_id, req_id))
+      INSERT INTO waivers (driver_id, event_id, request_id)
+      VALUES (%s, %s, %s)
+      ON DUPLICATE KEY UPDATE request_id = VALUES(request_id)
+    """, (driver_id, event_id, req_id))
     mysql.connection.commit()
     cur.close()
 
-    # 2) full‐page redirect to BoldSign
+    # 3) do a full redirect into BoldSign (no iframe)
     return redirect(get_boldsign_signing_url(req_id))
-
 
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
