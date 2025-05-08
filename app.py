@@ -875,30 +875,36 @@ def event_info(event_id):
 
 def create_boldsign_request(driver_id, event_id):
     """
-    Creates a BoldSign signing request based on your Waiver template,
-    and tells BoldSign to send them back to your driver_profile URL
-    when they finish signing.
+    Creates a BoldSign signing request based on a reusable Waiver template.
+    Returns the BoldSign request_id string.
     """
     driver = get_driver_data(driver_id)
     payload = {
         "template_id": app.config['BOLD_TEMPLATE_ID'],
         "signers": [{
             "name":  f"{driver['first_name']} {driver['last_name']}",
-            "email": driver['email'],    # assumes you’ve got a driver.email column
+            "email": driver['email'],        # assuming you store email
             "role":  "Racer"
         }],
-        "client_redirect_url": url_for('driver_profile', driver_id=driver_id, _external=True)
+        # after signing we'll come back here:
+        "client_redirect_url": url_for(
+            'driver_profile',
+            driver_id=driver_id,
+            _external=True
+        )
     }
 
-    headers = {
-        "Authorization": f"Bearer {app.config['BOLD_API_KEY']}",
-        "Content-Type":  "application/json"
-    }
+    # use HTTPBasicAuth with key:secret
+    auth = HTTPBasicAuth(
+        app.config['BOLD_API_KEY'],
+        app.config['BOLD_API_SECRET']
+    )
 
+    # <<<<<< correct endpoint path is plural "signing-requests" >>>>>>
     resp = requests.post(
-        f"{app.config['BOLD_API_BASE']}/signing-request",
+        f"{app.config['BOLD_API_BASE']}/signing-requests",
         json=payload,
-        headers=headers
+        auth=auth
     )
     resp.raise_for_status()
     return resp.json()['request_id']
@@ -908,17 +914,17 @@ def get_boldsign_signing_url(request_id):
     """
     Fetches the signing URL for a given BoldSign request.
     """
-    headers = {
-        "Authorization": f"Bearer {app.config['BOLD_API_KEY']}"
-    }
+    auth = HTTPBasicAuth(
+        app.config['BOLD_API_KEY'],
+        app.config['BOLD_API_SECRET']
+    )
 
     resp = requests.get(
-        f"{app.config['BOLD_API_BASE']}/signing-request/{request_id}",
-        headers=headers
+        f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
+        auth=auth
     )
     resp.raise_for_status()
     return resp.json()['signing_url']
-
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
