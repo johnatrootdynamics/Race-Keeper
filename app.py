@@ -881,8 +881,7 @@ def create_boldsign_request(driver_id, event_id):
     driver = get_driver_data(driver_id)
 
     payload = {
-        "templateId": app.config["BOLD_TEMPLATE_ID"],
-        "recipients": [
+        "signers": [
             {
                 "name":  f"{driver['first_name']} {driver['last_name']}",
                 "email": driver["email"],
@@ -901,20 +900,26 @@ def create_boldsign_request(driver_id, event_id):
         "Content-Type": "application/json"
     }
 
-    resp = requests.post(
-        f"{app.config['BOLD_API_BASE']}/template/send",
-        headers=headers,
-        json=payload,
-        timeout=10
+    # Note: templateId passed in the query string, not the JSON body
+    url = (
+        f"{app.config['BOLD_API_BASE']}"
+        f"/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
     )
 
-    # If something still goes wrong, log the body for inspection:
+    resp = requests.post(url, headers=headers, json=payload, timeout=10)
+
     if not resp.ok:
-        logging.error("BoldSign request failed: %s %s", resp.status_code, resp.text)
+        logging.error(
+            "BoldSign request failed: %s %s",
+            resp.status_code,
+            resp.text
+        )
     resp.raise_for_status()
 
     data = resp.json()
     return data["requestId"]
+
+
 
 
 def get_boldsign_signing_url(request_id):
@@ -938,10 +943,10 @@ def start_waiver(driver_id, event_id):
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
-    # 1) create the BoldSign request
+    # create the BoldSign request
     req_id = create_boldsign_request(driver_id, event_id)
 
-    # 2) persist that request_id on your waivers table
+    # upsert into your waivers table
     cur = mysql.connection.cursor()
     cur.execute("""
       INSERT INTO waivers (driver_id, event_id, request_id)
@@ -951,8 +956,10 @@ def start_waiver(driver_id, event_id):
     mysql.connection.commit()
     cur.close()
 
-    # 3) full redirect to BoldSign
+    # full redirect to BoldSign’s signing page
     return redirect(get_boldsign_signing_url(req_id))
+
+
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
     # 1) Capture the incoming JSON
