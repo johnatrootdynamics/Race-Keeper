@@ -942,32 +942,6 @@ def start_waiver(driver_id, event_id):
     return redirect(get_boldsign_signing_url(req_id))
 
 
-@app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
-@login_required
-def start_waiver(driver_id, event_id):
-    # only the driver or an admin can launch this
-    if not (current_user.id == driver_id or current_user.role == 'admin'):
-        abort(403)
-
-    # 1) create the BoldSign request
-    req_id = create_boldsign_request(driver_id, event_id)
-
-    # 2) persist the request_id on your waiver record (insert or update)
-    cur = mysql.connection.cursor()
-    cur.execute("""
-        INSERT INTO waivers (driver_id, event_id, request_id)
-        VALUES (%s, %s, %s)
-        ON DUPLICATE KEY UPDATE request_id = %s
-    """, (driver_id, event_id, req_id, req_id))
-    mysql.connection.commit()
-    cur.close()
-
-    # 3) fetch the signing URL and do a full redirect
-    signing_url = get_boldsign_signing_url(req_id)
-    return redirect(signing_url)
-
-
-
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
     # 1) Capture the incoming JSON
