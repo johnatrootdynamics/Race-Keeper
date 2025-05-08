@@ -13,7 +13,7 @@ from datetime import datetime
 from functools import wraps
 import requests
 from requests.auth import HTTPBasicAuth
-
+import logging
 
 app = Flask(__name__)
 app.config.update(
@@ -879,40 +879,41 @@ def create_boldsign_request(driver_id, event_id):
     Returns the BoldSign requestId string.
     """
     driver = get_driver_data(driver_id)
+
     payload = {
-        # Your template must define a role "Racer" (or adjust to whatever role name your template uses)
+        "templateId": app.config["BOLD_TEMPLATE_ID"],
         "recipients": [
             {
-                "email": driver["email"],               # you added email to your schema
                 "name":  f"{driver['first_name']} {driver['last_name']}",
+                "email": driver["email"],
                 "role":  "Racer"
             }
         ],
-        # After signing, BoldSign will redirect here
         "redirectUrl": url_for(
             'driver_profile',
             driver_id=driver_id,
-            event_id=event_id,
             _external=True
         )
     }
 
     headers = {
-        "x-api-key":       app.config["BOLD_API_KEY"],
-        "Content-Type":    "application/json"
+        "x-api-key":    app.config["BOLD_API_KEY"],
+        "Content-Type": "application/json"
     }
 
-    # Send the template-based request
     resp = requests.post(
         f"{app.config['BOLD_API_BASE']}/template/send",
         headers=headers,
-        params={"templateId": app.config["BOLD_TEMPLATE_ID"]},
         json=payload,
         timeout=10
     )
+
+    # If something still goes wrong, log the body for inspection:
+    if not resp.ok:
+        logging.error("BoldSign request failed: %s %s", resp.status_code, resp.text)
     resp.raise_for_status()
+
     data = resp.json()
-    # BoldSign returns the new requestId in camelCase
     return data["requestId"]
 
 
@@ -920,24 +921,20 @@ def get_boldsign_signing_url(request_id):
     """
     Fetches the signing URL for a given BoldSign request.
     """
-    headers = {
-        "x-api-key": app.config["BOLD_API_KEY"],
-    }
+    headers = {"x-api-key": app.config["BOLD_API_KEY"]}
     resp = requests.get(
         f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
         headers=headers,
         timeout=10
     )
     resp.raise_for_status()
-    data = resp.json()
-    # They return signingUrl in camelCase
-    return data["signingUrl"]
+    return resp.json()["signingUrl"]
 
 
-# And your start_waiver route stays mostly the same:
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
+    # only the driver or an admin can launch this
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
@@ -954,9 +951,8 @@ def start_waiver(driver_id, event_id):
     mysql.connection.commit()
     cur.close()
 
-    # 3) full redirect to BoldSign (no iframe), BoldSign will send you back to your redirectUrl
+    # 3) full redirect to BoldSign
     return redirect(get_boldsign_signing_url(req_id))
-
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
     # 1) Capture the incoming JSON
