@@ -922,23 +922,26 @@ def get_boldsign_signing_url(request_id):
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
+    # only the driver or an admin can launch this
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
     # 1) create the BoldSign request
     req_id = create_boldsign_request(driver_id, event_id)
 
-    # 2) persist that request_id on your waivers table
+    # 2) persist that request_id (and reset signed=FALSE if re‐signing)
     cur = mysql.connection.cursor()
     cur.execute("""
-      INSERT INTO waivers (driver_id, event_id, request_id)
-      VALUES (%s, %s, %s)
-      ON DUPLICATE KEY UPDATE request_id = VALUES(request_id)
+      INSERT INTO waivers (driver_id, event_id, request_id, signed)
+      VALUES (%s, %s, %s, FALSE)
+      ON DUPLICATE KEY UPDATE
+        request_id = VALUES(request_id),
+        signed     = FALSE
     """, (driver_id, event_id, req_id))
     mysql.connection.commit()
     cur.close()
 
-    # 3) do a full redirect into BoldSign (no iframe)
+    # 3) full redirect out to BoldSign’s signing page
     return redirect(get_boldsign_signing_url(req_id))
 
 @app.route('/boldsign/webhook', methods=['POST'])
