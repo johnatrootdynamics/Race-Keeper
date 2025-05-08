@@ -905,7 +905,7 @@ def create_boldsign_request(driver_id, event_id):
     resp = requests.post(url, json=payload, headers=headers)
     resp.raise_for_status()
     data = resp.json()
-    # BoldSign returns the ID as either 'request_id' or 'id'
+    # BoldSign returns the ID as either 'request_id' or 'id' weird
     return data.get('request_id') or data.get('id')
 
 
