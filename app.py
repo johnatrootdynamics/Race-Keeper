@@ -874,54 +874,49 @@ def event_info(event_id):
 
 
 def create_boldsign_request(driver_id, event_id):
-    """
-    Creates a BoldSign signing request from a template.
-    Returns the request_id.
-    """
+    # pull driver data (must include email)
     driver = get_driver_data(driver_id)
+
+    url = f"{app.config['BOLD_API_BASE']}/template/send"
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-API-KEY": app.config['BOLD_API_KEY']
+    }
+    params = { "templateId": app.config['BOLD_TEMPLATE_ID'] }
     payload = {
-        "template_id": app.config['BOLD_TEMPLATE_ID'],
-        "signers": [
+        "roles": [
             {
-                "name": f"{driver['first_name']} {driver['last_name']}",
-                # use whatever field holds their email
-                "email": driver['email'],  
-                "role": "Racer"
+                "roleIndex": 1,
+                "signerName":  f"{driver['first_name']} {driver['last_name']}",
+                "signerEmail": driver['email'],   # make sure your drivers table has an email column!
+                "signerType":  "Signer"
             }
         ],
-        "client_redirect_url": url_for(
+        # when signing completes, BoldSign will redirect here
+        "clientRedirectUrl": url_for(
             'driver_profile',
             driver_id=driver_id,
+            event_id=event_id,
             _external=True
         )
     }
 
-    headers = {
-        "Authorization": f"ApiKey {app.config['BOLD_API_KEY']}",
-        "Content-Type": "application/json"
-    }
-    url = f"{app.config['BOLD_API_BASE']}/signing-requests"
-
-    resp = requests.post(url, json=payload, headers=headers)
+    resp = requests.post(url, headers=headers, params=params, json=payload)
     resp.raise_for_status()
     data = resp.json()
-    # BoldSign returns the ID as either 'request_id' or 'id' weird
-    return data.get('request_id') or data.get('id')
+    # The returned object may contain 'requestId' or 'documentId' depending on version
+    return data.get('requestId') or data.get('documentId')
 
 
 def get_boldsign_signing_url(request_id):
-    """
-    Fetches the signing URL for a given BoldSign request.
-    """
+    url = f"{app.config['BOLD_API_BASE']}/signing-request/{request_id}/signing-url"
     headers = {
-        "Authorization": f"ApiKey {app.config['BOLD_API_KEY']}"
+        "X-API-KEY": app.config['BOLD_API_KEY']
     }
-    url = f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}"
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    data = resp.json()
-    # BoldSign may return it as 'signing_url' or 'signingUrl'
-    return data.get('signing_url') or data.get('signingUrl')
+    return resp.json().get('signingUrl')
 
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
