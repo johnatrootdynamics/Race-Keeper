@@ -885,8 +885,8 @@ def create_boldsign_request(driver_id, event_id):
     payload = {
         "roles": [
             {
-                # match the *first* role in your BoldSign template:
-                "roleIndex":    0,
+                # must be between 1 and 50 — 1 is the first slot
+                "roleIndex":    1,
                 "roleName":     "Racer",
                 "signerName":   f"{driver['first_name']} {driver['last_name']}",
                 "signerEmail":  driver_email
@@ -906,7 +906,6 @@ def create_boldsign_request(driver_id, event_id):
     resp = requests.post(url, headers=headers, data=json.dumps(payload))
     resp.raise_for_status()
     return resp.json()["requestId"]
-
 
 def get_boldsign_signing_url(request_id):
     """
