@@ -877,43 +877,36 @@ def event_info(event_id):
 
 def create_boldsign_request(driver_id, event_id):
     """
-    Creates a BoldSign signing request based on a reusable Waiver template,
-    and tells BoldSign to send the user back to driver_profile when they're done.
-    Returns the BoldSign request_id string.
+    Sends your waiver template to BoldSign via the /template/send endpoint.
+    Returns the returned documentId (not a ‘request_id’).
     """
     driver = get_driver_data(driver_id)
-    # Build the payload
+    url = f"{app.config['BOLD_API_BASE']}/template/send"
+    params = {"templateId": app.config['BOLD_TEMPLATE_ID']}
     payload = {
-        "template_id": app.config['BOLD_TEMPLATE_ID'],
-        "signers": [
-            {
-                "name":  f"{driver['first_name']} {driver['last_name']}",
-                "email": driver['email'],        # assuming you store email
-                "role":  "Racer"
-            }
-        ],
-        # <-- here’s where BoldSign will send them after signing:
-        "client_redirect_url": url_for(
-            'driver_profile',
-            driver_id=driver_id,
-            _external=True
-        )
+        "disableEmails": True,
+        "roles": [{
+            "roleIndex": 1,
+            "signerName": f"{driver['first_name']} {driver['last_name']}",
+            "signerEmail": driver['username'] + "@example.com",
+            "privateMessage": "Please sign the waiver.",
+            "signerType": "Signer",
+            "formFields": [{
+                "fieldType": "Signature",
+                "pageNumber": 1,
+                "bounds": {"x": 100, "y": 100, "width": 200, "height": 50},
+                "isRequired": True
+            }]
+        }]
     }
-
-    # BoldSign now uses API-Key bearer auth
     headers = {
-        "Authorization": f"Bearer {app.config['BOLD_API_KEY']}",
-        "Content-Type":  "application/json"
+        "accept": "application/json",
+        "X-API-KEY": app.config['BOLD_API_KEY'],
+        "Content-Type": "application/json"
     }
-
-    resp = requests.post(
-        f"{app.config['BOLD_API_BASE']}/signing-requests",
-        json=payload,
-        headers=headers
-    )
+    resp = requests.post(url, headers=headers, params=params, json=payload)
     resp.raise_for_status()
-    return resp.json()['request_id']
-
+    return resp.json()["documentId"]
 
 
 def get_boldsign_signing_url(document_id, signer_email, driver_id):
@@ -949,26 +942,36 @@ def get_boldsign_signing_url(document_id, signer_email, driver_id):
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
-    # only the driver or an admin can launch this
+    # only the driver or an admin can launch
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
-    # 1) create the BoldSign request
-    req_id = create_boldsign_request(driver_id, event_id)
+    # ➊ create the BoldSign request
+    request_id = create_boldsign_request(driver_id, event_id)
 
-    # 2) persist the request_id on your waiver record (insert or update)
+    # ➋ upsert into waivers (document_id holds your request_id)
     cur = mysql.connection.cursor()
     cur.execute("""
-        INSERT INTO waivers (driver_id, event_id, request_id)
-        VALUES (%s, %s, %s)
-        ON DUPLICATE KEY UPDATE request_id = %s
-    """, (driver_id, event_id, req_id, req_id))
+      INSERT INTO waivers
+        (driver_id, event_id, document_id, signed)
+      VALUES (%s, %s, %s, FALSE)
+      ON DUPLICATE KEY UPDATE
+        document_id = VALUES(document_id),
+        signed      = FALSE,
+        signed_at   = NULL
+    """, (driver_id, event_id, request_id))
     mysql.connection.commit()
     cur.close()
 
-    # 3) fetch the signing URL and do a full redirect
-    signing_url = get_boldsign_signing_url(req_id)
-    return redirect(signing_url)
+    # ➌ get the embedded signing URL (with redirect back to profile)
+    driver       = get_driver_data(driver_id)
+    signer_email = f"{driver['username']}@example.com"
+    signing_url  = get_boldsign_signing_url(
+      request_id, signer_email, driver_id
+    )
+
+    # embed it (or redirect) — here we redirect into an iframe page
+    return render_template('waiver_embed.html', signing_url=signing_url)
 
 
 
