@@ -330,11 +330,12 @@ def driver_profile(driver_id):
     today = datetime.now().date()
     cur.execute("""
         SELECT
-          e.id                           AS event_id,
-          e.event_name                   AS event_name,
-          e.event_date                   AS event_datetime,
+          e.id               AS event_id,
+          e.event_name       AS event_name,
+          e.event_date       AS event_date,
+          e.event_time       AS event_time,
           COALESCE(ci.checked_in, FALSE) AS checked_in,
-          COALESCE(w.signed,    FALSE)   AS waiver_signed
+          COALESCE(w.signed, FALSE)      AS waiver_signed
         FROM events e
         LEFT JOIN check_ins ci
           ON ci.event_id = e.id
@@ -343,7 +344,7 @@ def driver_profile(driver_id):
           ON w.event_id  = e.id
          AND w.driver_id = %s
         WHERE DATE(e.event_date) = %s
-        ORDER BY e.event_date
+        ORDER BY e.event_time
     """, (driver_id, driver_id, today))
     today_checkins = cur.fetchall()
 
@@ -561,21 +562,23 @@ def delete_car(car_id,driver_id):
 
 @app.route('/create_event', methods=['GET', 'POST'])
 @login_required
+@role_required('admin')
 def create_event():
-    if current_user.role != 'admin':
-        abort(403)
     if request.method == 'POST':
         event_name = request.form['event_name']
-        event_date = request.form['event_date']
+        event_date = request.form['event_date']      # "YYYY-MM-DD"
+        event_time = request.form['event_time']      # "HH:MM"
 
-        # Insert data into the 'events' table
+        # Insert into events (date + time in separate columns)
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO events (event_name, event_date) VALUES (%s, %s)",
-                    (event_name, event_date))
+        cur.execute("""
+            INSERT INTO events (event_name, event_date, event_time)
+            VALUES (%s, %s, %s)
+        """, (event_name, event_date, event_time))
         mysql.connection.commit()
         cur.close()
 
-        return redirect(url_for('index'))  # Redirect to the homepage or any other page
+        return redirect(url_for('events'))
 
     return render_template('create_event.html')
 
