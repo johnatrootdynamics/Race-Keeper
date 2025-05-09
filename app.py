@@ -880,39 +880,32 @@ def create_boldsign_request(driver_id, event_id):
     Returns the request_id.
     """
     driver = get_driver_data(driver_id)
-    if not driver.get('email'):
-        # assume username is local part if you didn't collect email yet
-        driver_email = f"{driver['username']}@example.com"
-    else:
-        driver_email = driver['email']
+    driver_email = driver.get('email') or f"{driver['username']}@example.com"
 
-    # per BoldSign docs: you must supply a 'roles' array with roleName, signerName, signerEmail
     payload = {
         "roles": [
             {
-                "roleName":    "Racer",  # must match the role name defined in your template
-                "signerName":  f"{driver['first_name']} {driver['last_name']}",
-                "signerEmail": driver_email
+                # match the *first* role in your BoldSign template:
+                "roleIndex":    0,
+                "roleName":     "Racer",
+                "signerName":   f"{driver['first_name']} {driver['last_name']}",
+                "signerEmail":  driver_email
             }
         ],
-        # optional: disable the email notification so they only sign in-app
         "disableEmailNotifications": True,
-        # redirect back to your app when they're done
+        # once they finish signing, BoldSign will redirect back here:
         "redirectUrl": url_for('driver_profile', driver_id=driver_id, _external=True),
     }
 
     url = f"{app.config['BOLD_API_BASE']}/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
     headers = {
-        "Content-Type":  "application/json",
-        "x-api-key":     app.config['BOLD_API_KEY']
+        "Content-Type": "application/json",
+        "x-api-key":    app.config['BOLD_API_KEY'],
     }
 
     resp = requests.post(url, headers=headers, data=json.dumps(payload))
-    # will raise HTTPError on 4xx/5xx
     resp.raise_for_status()
-    body = resp.json()
-    # new template/send returns requestId
-    return body["requestId"]
+    return resp.json()["requestId"]
 
 
 def get_boldsign_signing_url(request_id):
