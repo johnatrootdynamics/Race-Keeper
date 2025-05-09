@@ -875,48 +875,48 @@ def event_info(event_id):
 
 def create_boldsign_request(driver_id, event_id):
     """
-    Sends a reusable Waiver template to BoldSign and returns the requestId.
+    Creates a BoldSign signing request from a saved Waiver template.
+    Returns the BoldSign request_id string.
     """
     driver = get_driver_data(driver_id)
-    template_id = current_app.config['BOLD_TEMPLATE_ID']
-
+    # build the payload exactly as BoldSign expects:
     payload = {
-        "templateId": template_id,
         "signers": [
             {
-                "signerName": f"{driver['first_name']} {driver['last_name']}",
-                "signerEmail": driver['email'],      # make sure your drivers table has an email column
-                "roleName": "Racer"
+                "signerName":  f"{driver['first_name']} {driver['last_name']}",
+                "signerEmail": driver['email'],      # <- your DB’s email column
+                "signerRole":  "Racer"
             }
         ],
-        "redirectUrl": url_for(
+        "clientRedirectUrl": url_for(
             'driver_profile',
             driver_id=driver_id,
             _external=True
         )
     }
 
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "api-key": current_app.config['BOLD_API_KEY']
-    }
-
-    resp = requests.post(
-        f"{current_app.config['BOLD_API_BASE']}/template/send?templateId={template_id}",
-        json=payload,
-        headers=headers
+    # use the template/send endpoint
+    url = (
+        f"{app.config['BOLD_API_BASE']}"
+        f"/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
     )
 
+    headers = {
+        "X-API-Key": app.config['BOLD_API_KEY'],
+        "Content-Type": "application/json"
+    }
+
+    resp = requests.post(url, json=payload, headers=headers)
     try:
         resp.raise_for_status()
     except requests.HTTPError as e:
-        current_app.logger.error(f"🔴 BoldSign request failed: {resp.status_code} {resp.text}")
+        app.logger.error(f"🔔 BoldSign request failed: {e.response.status_code} {e.response.text}")
         raise
 
+    # BoldSign returns the new signing-request ID in data.requestId
     data = resp.json()
-    # Depending on BoldSign's response structure, this might be data["requestId"] or data["request_id"]
-    return data.get("requestId") or data.get("request_id")
+    return data["data"]["requestId"]
+
 
 
 def get_boldsign_signing_url(request_id):
