@@ -81,6 +81,12 @@
       margin-bottom: 0.5rem;
     }
   </style>
+  <script>
+  // If we’re inside an iframe, reload the parent window
+  if (window.self !== window.top) {
+    window.top.location.href = window.location.href;
+  }
+</script>
 </head>
 <body>
   {# ——— shared navbar ——— #}
