@@ -878,39 +878,75 @@ def event_info(event_id):
 def create_boldsign_request(driver_id, event_id):
     driver      = get_driver_data(driver_id)
     driver_email = driver.get('email') or f"{driver['username']}@example.com"
+
     payload = {
         "roles": [{
-            "roleIndex":   1,                     # 1-based index in your template
-            "roleName":    "Racer",               # must match your template
+            # 1-based index of the signer role in your template
+            "roleIndex":   1,
+            "roleName":    "Racer",
             "signerName":  f"{driver['first_name']} {driver['last_name']}",
             "signerEmail": driver_email
         }],
         "disableEmailNotifications": True,
-        # after signing, BoldSign will redirect this iframe back here:
-        "redirectUrl": url_for('finish_waiver', driver_id=driver_id, event_id=event_id, _external=True)
+        "redirectUrl": url_for('finish_waiver', driver_id=driver_id,
+                               event_id=event_id, _external=True)
     }
 
-    url = f"{app.config['BOLD_API_BASE']}/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
     headers = {
         "Content-Type": "application/json",
         "x-api-key":    app.config['BOLD_API_KEY'],
     }
+
+    # 1) Create from template
+    url = (
+      f"{app.config['BOLD_API_BASE']}"
+      f"/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
+    )
     resp = requests.post(url, headers=headers, json=payload)
     resp.raise_for_status()
     data = resp.json()
-    req_id = data.get("requestId") or data.get("request_id")
+
+    # 2) Try primary key names
+    req_id = data.get("requestId") \
+          or data.get("signingRequestId")
     if not req_id:
-        app.logger.error("BoldSign response missing requestId: %s", data)
-        raise RuntimeError("BoldSign response missing requestId")
+        # 3) Fallback: list signing-requests by documentId
+        doc_id = data.get("documentId") or data.get("document_id")
+        if not doc_id:
+            app.logger.error("BoldSign reply missing both requestId and documentId: %s", data)
+            raise RuntimeError("BoldSign response missing requestId and documentId")
+
+        list_url = (
+          f"{app.config['BOLD_API_BASE']}"
+          f"/signing-requests?documentId={doc_id}"
+        )
+        list_resp = requests.get(list_url, headers=headers)
+        list_resp.raise_for_status()
+        list_data = list_resp.json()
+        # assume array under "signingRequests" or "requests"
+        arr = list_data.get("signingRequests") \
+           or list_data.get("requests") \
+           or list_data.get("data")
+        if not arr or not isinstance(arr, list):
+            app.logger.error("BoldSign list missing signingRequests array: %s", list_data)
+            raise RuntimeError("Could not find signingRequestId for document")
+        first = arr[0] or {}
+        req_id = first.get("requestId") \
+              or first.get("signingRequestId") \
+              or first.get("id")
+        if not req_id:
+            app.logger.error("BoldSign list entries missing an id: %s", first)
+            raise RuntimeError("BoldSign response list missing request id")
+
     return req_id
+
 
 def get_boldsign_embedded_url(request_id):
     url = f"{app.config['BOLD_API_BASE']}/signing-request/{request_id}/embedded-url"
     headers = {"x-api-key": app.config['BOLD_API_KEY']}
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    data = resp.json()
-    return data.get("embeddedUrl") or data.get("embedded_url")
+    return resp.json().get("embeddedUrl") or resp.json().get("embedded_url")
 
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
@@ -950,8 +986,8 @@ def start_waiver(driver_id, event_id):
 @app.route('/driver/<int:driver_id>/waiver/finish/<int:event_id>')
 @login_required
 def finish_waiver(driver_id, event_id):
-    # once BoldSign has redirected here, just bounce back to profile
-    flash("Thank you — your waiver is complete!", "success")
+    # after BoldSign completes in the iframe, flash then send back
+    flash("Thank you—your waiver is complete!", "success")
     return redirect(url_for('driver_profile', driver_id=driver_id))
 
 
