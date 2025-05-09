@@ -875,92 +875,85 @@ def event_info(event_id):
 
 def create_boldsign_request(driver_id, event_id):
     """
-    Creates a BoldSign signing request from a saved Waiver template.
-    Returns the BoldSign request_id string.
+    Calls BoldSign’s template/send endpoint to create a signing request.
+    Returns the request_id.
     """
     driver = get_driver_data(driver_id)
-    # build the payload exactly as BoldSign expects:
+    if not driver.get('email'):
+        # assume username is local part if you didn't collect email yet
+        driver_email = f"{driver['username']}@example.com"
+    else:
+        driver_email = driver['email']
+
+    # per BoldSign docs: you must supply a 'roles' array with roleName, signerName, signerEmail
     payload = {
-        "signers": [
+        "roles": [
             {
+                "roleName":    "Racer",  # must match the role name defined in your template
                 "signerName":  f"{driver['first_name']} {driver['last_name']}",
-                "signerEmail": driver['email'],      # <- your DB’s email column
-                "signerRole":  "Racer"
+                "signerEmail": driver_email
             }
         ],
-        "clientRedirectUrl": url_for(
-            'driver_profile',
-            driver_id=driver_id,
-            _external=True
-        )
+        # optional: disable the email notification so they only sign in-app
+        "disableEmailNotifications": True,
+        # redirect back to your app when they're done
+        "redirectUrl": url_for('driver_profile', driver_id=driver_id, _external=True),
     }
 
-    # use the template/send endpoint
-    url = (
-        f"{app.config['BOLD_API_BASE']}"
-        f"/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
-    )
-
+    url = f"{app.config['BOLD_API_BASE']}/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
     headers = {
-        "X-API-Key": app.config['BOLD_API_KEY'],
-        "Content-Type": "application/json"
+        "Content-Type":  "application/json",
+        "x-api-key":     app.config['BOLD_API_KEY']
     }
 
-    resp = requests.post(url, json=payload, headers=headers)
-    try:
-        resp.raise_for_status()
-    except requests.HTTPError as e:
-        app.logger.error(f"🔔 BoldSign request failed: {e.response.status_code} {e.response.text}")
-        raise
-
-    # BoldSign returns the new signing-request ID in data.requestId
-    data = resp.json()
-    return data["data"]["requestId"]
-
+    resp = requests.post(url, headers=headers, data=json.dumps(payload))
+    # will raise HTTPError on 4xx/5xx
+    resp.raise_for_status()
+    body = resp.json()
+    # new template/send returns requestId
+    return body["requestId"]
 
 
 def get_boldsign_signing_url(request_id):
     """
-    Fetches the signing URL for a given BoldSign request.
+    After creating a request, fetch its signing URL.
     """
-    headers = {
-        "Accept": "application/json",
-        "api-key": current_app.config['BOLD_API_KEY']
-    }
-
-    resp = requests.get(
-        f"{current_app.config['BOLD_API_BASE']}/signing-requests/{request_id}",
-        headers=headers
-    )
+    url = f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}"
+    headers = {"x-api-key": app.config['BOLD_API_KEY']}
+    resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    data = resp.json()
-    # Again, adjust field name if needed
-    return data.get("signingUrl") or data.get("signing_url")
+    return resp.json()["signingUrl"]
 
+
+# --- your route ---
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
 def start_waiver(driver_id, event_id):
-    # only the driver or an admin can launch this
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
 
     # 1) Create the BoldSign request
-    req_id = create_boldsign_request(driver_id, event_id)
+    try:
+        req_id = create_boldsign_request(driver_id, event_id)
+    except requests.HTTPError as e:
+        app.logger.error(f"BoldSign request failed: {e.response.text}")
+        flash("Unable to start e-waiver. Please try again later.", "danger")
+        return redirect(url_for('driver_profile', driver_id=driver_id))
 
     # 2) Persist that request_id on your waivers table
     cur = mysql.connection.cursor()
     cur.execute("""
-      INSERT INTO waivers (driver_id, event_id, request_id)
-      VALUES (%s, %s, %s)
-      ON DUPLICATE KEY UPDATE request_id = VALUES(request_id)
+        INSERT INTO waivers (driver_id, event_id, request_id, created_at)
+        VALUES (%s, %s, %s, NOW())
+        ON DUPLICATE KEY UPDATE request_id = VALUES(request_id), signed = FALSE
     """, (driver_id, event_id, req_id))
     mysql.connection.commit()
     cur.close()
 
-    # 3) Redirect the user out of your app into BoldSign
-    return redirect(get_boldsign_signing_url(req_id))
-
+    # 3) Redirect entirely out to BoldSign
+    signing_url = get_boldsign_signing_url(req_id)
+    return redirect(signing_url)
 
 
 @app.route('/boldsign/webhook', methods=['POST'])
