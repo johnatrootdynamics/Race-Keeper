@@ -881,7 +881,6 @@ def create_boldsign_request(driver_id, event_id):
 
     payload = {
         "roles": [{
-            # 1-based index of the signer role in your template
             "roleIndex":   1,
             "roleName":    "Racer",
             "signerName":  f"{driver['first_name']} {driver['last_name']}",
@@ -892,54 +891,32 @@ def create_boldsign_request(driver_id, event_id):
                                event_id=event_id, _external=True)
     }
 
+    url = (
+      f"{app.config['BOLD_API_BASE']}"
+      f"/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
+    )
     headers = {
         "Content-Type": "application/json",
         "x-api-key":    app.config['BOLD_API_KEY'],
     }
 
-    # 1) Create from template
-    url = (
-      f"{app.config['BOLD_API_BASE']}"
-      f"/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
-    )
+    # Log outgoing request
+    app.logger.debug("➡️ BoldSign POST %s\nHeaders: %s\nPayload: %s",
+                     url, headers, json.dumps(payload, indent=2))
+
     resp = requests.post(url, headers=headers, json=payload)
+
+    # Log full response
+    app.logger.debug("⬅️ BoldSign ← status=%s\nHeaders: %s\nBody: %s",
+                     resp.status_code,
+                     dict(resp.headers),
+                     resp.text)
+
     resp.raise_for_status()
     data = resp.json()
 
-    # 2) Try primary key names
-    req_id = data.get("requestId") \
-          or data.get("signingRequestId")
-    if not req_id:
-        # 3) Fallback: list signing-requests by documentId
-        doc_id = data.get("documentId") or data.get("document_id")
-        if not doc_id:
-            app.logger.error("BoldSign reply missing both requestId and documentId: %s", data)
-            raise RuntimeError("BoldSign response missing requestId and documentId")
-
-        list_url = (
-          f"{app.config['BOLD_API_BASE']}"
-          f"/signing-requests?documentId={doc_id}"
-        )
-        list_resp = requests.get(list_url, headers=headers)
-        list_resp.raise_for_status()
-        list_data = list_resp.json()
-        # assume array under "signingRequests" or "requests"
-        arr = list_data.get("signingRequests") \
-           or list_data.get("requests") \
-           or list_data.get("data")
-        if not arr or not isinstance(arr, list):
-            app.logger.error("BoldSign list missing signingRequests array: %s", list_data)
-            raise RuntimeError("Could not find signingRequestId for document")
-        first = arr[0] or {}
-        req_id = first.get("requestId") \
-              or first.get("signingRequestId") \
-              or first.get("id")
-        if not req_id:
-            app.logger.error("BoldSign list entries missing an id: %s", first)
-            raise RuntimeError("BoldSign response list missing request id")
-
-    return req_id
-
+    # ...then your existing logic to extract requestId...
+    return data.get("requestId") or data.get("signingRequestId")
 
 def get_boldsign_embedded_url(request_id):
     url = f"{app.config['BOLD_API_BASE']}/signing-request/{request_id}/embedded-url"
