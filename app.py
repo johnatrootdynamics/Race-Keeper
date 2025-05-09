@@ -885,15 +885,15 @@ def create_boldsign_request(driver_id, event_id):
     payload = {
         "roles": [
             {
-                # match the *first* role in your BoldSign template:
-                "roleIndex":   1,           # BoldSign wants 1-based indexes
+                # BoldSign uses 1-based roleIndex
+                "roleIndex":   1,
                 "roleName":    "Racer",
                 "signerName":  f"{driver['first_name']} {driver['last_name']}",
                 "signerEmail": driver_email
             }
         ],
         "disableEmailNotifications": True,
-        # redirect back here once signing is complete:
+        # Redirect back here when signing is done
         "redirectUrl": url_for('driver_profile', driver_id=driver_id, _external=True),
     }
 
@@ -911,15 +911,22 @@ def create_boldsign_request(driver_id, event_id):
         raise
 
     data = resp.json()
-    # try both possible key names:
-    request_id = data.get("requestId") or data.get("request_id")
+    app.logger.debug("ℹ️ BoldSign create response JSON: %s", data)
+
+    # look in every plausible spot for your request ID
+    request_id = (
+        data.get("requestId")
+        or data.get("request_id")
+        or data.get("data", {}).get("requestId")
+        or data.get("data", {}).get("request_id")
+    )
+
     if not request_id:
-        app.logger.error("🚨 Missing requestId in BoldSign response: %s", data)
-        raise RuntimeError("BoldSign response missing requestId")
+        # still nothing? log and blow up with the full JSON
+        app.logger.error("🚨 BoldSign response missing requestId: %s", data)
+        raise RuntimeError(f"BoldSign response missing requestId. Full JSON: {data!r}")
 
     return request_id
-
-# --- your route ---
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
