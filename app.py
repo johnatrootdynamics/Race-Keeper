@@ -953,7 +953,6 @@ def finish_waiver(driver_id, event_id):
     # once BoldSign has redirected here, just bounce back to profile
     flash("Thank you — your waiver is complete!", "success")
     return redirect(url_for('driver_profile', driver_id=driver_id))
-}
 
 
 @app.route('/final_check_in', methods=['POST'])
