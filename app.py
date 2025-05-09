@@ -879,44 +879,45 @@ def create_boldsign_request(driver_id, event_id):
     Calls BoldSign’s template/send endpoint to create a signing request.
     Returns the request_id.
     """
-    driver = get_driver_data(driver_id)
-    driver_email = driver.get('email') or f"{driver['username']}@example.com"
+    driver      = get_driver_data(driver_id)
+    driver_email= driver.get('email') or f"{driver['username']}@example.com"
 
     payload = {
         "roles": [
             {
-                # must be between 1 and 50 — 1 is the first slot
-                "roleIndex":    1,
-                "roleName":     "Racer",
-                "signerName":   f"{driver['first_name']} {driver['last_name']}",
-                "signerEmail":  driver_email
+                # match the *first* role in your BoldSign template:
+                "roleIndex":   1,           # BoldSign wants 1-based indexes
+                "roleName":    "Racer",
+                "signerName":  f"{driver['first_name']} {driver['last_name']}",
+                "signerEmail": driver_email
             }
         ],
         "disableEmailNotifications": True,
-        # once they finish signing, BoldSign will redirect back here:
+        # redirect back here once signing is complete:
         "redirectUrl": url_for('driver_profile', driver_id=driver_id, _external=True),
     }
 
     url = f"{app.config['BOLD_API_BASE']}/template/send?templateId={app.config['BOLD_TEMPLATE_ID']}"
     headers = {
         "Content-Type": "application/json",
-        "x-api-key":    app.config['BOLD_API_KEY'],
+        "x-api-key":     app.config['BOLD_API_KEY'],
     }
 
     resp = requests.post(url, headers=headers, data=json.dumps(payload))
-    resp.raise_for_status()
-    return resp.json()["requestId"]
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError as e:
+        app.logger.error("🚨 BoldSign create failed (%s): %s", resp.status_code, resp.text)
+        raise
 
-def get_boldsign_signing_url(request_id):
-    """
-    After creating a request, fetch its signing URL.
-    """
-    url = f"{app.config['BOLD_API_BASE']}/signing-requests/{request_id}"
-    headers = {"x-api-key": app.config['BOLD_API_KEY']}
-    resp = requests.get(url, headers=headers)
-    resp.raise_for_status()
-    return resp.json()["signingUrl"]
+    data = resp.json()
+    # try both possible key names:
+    request_id = data.get("requestId") or data.get("request_id")
+    if not request_id:
+        app.logger.error("🚨 Missing requestId in BoldSign response: %s", data)
+        raise RuntimeError("BoldSign response missing requestId")
 
+    return request_id
 
 # --- your route ---
 
