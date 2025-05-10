@@ -301,11 +301,12 @@ def driver_profile(driver_id):
     # only the driver themself or an admin can view
     if not (current_user.id == driver_id or current_user.role == 'admin'):
         abort(403)
-        
-        # If they’ve just come back from BoldSign:
+
+    # flash if they just returned from signing
     status = request.args.get('status')
     if status and status.lower() in ('signed', 'completed'):
         flash('✅ Waiver signed successfully!', 'success')
+
     # handle new note submission
     if request.method == 'POST':
         note_text = request.form.get('note_text')
@@ -330,10 +331,9 @@ def driver_profile(driver_id):
     today = datetime.now().date()
     cur.execute("""
         SELECT
-          e.id               AS event_id,
-          e.event_name       AS event_name,
-          e.event_date       AS event_date,
-          e.event_time       AS event_time,
+          e.id                           AS event_id,
+          e.event_name                   AS event_name,
+          e.event_date                   AS event_datetime,
           COALESCE(ci.checked_in, FALSE) AS checked_in,
           COALESCE(w.signed, FALSE)      AS waiver_signed
         FROM events e
@@ -344,7 +344,7 @@ def driver_profile(driver_id):
           ON w.event_id  = e.id
          AND w.driver_id = %s
         WHERE DATE(e.event_date) = %s
-        ORDER BY e.event_time
+        ORDER BY e.event_date
     """, (driver_id, driver_id, today))
     today_checkins = cur.fetchall()
 
@@ -358,8 +358,6 @@ def driver_profile(driver_id):
 
     cur.close()
 
-
-
     return render_template(
         'driver_profile.html',
         driver=driver,
@@ -367,6 +365,7 @@ def driver_profile(driver_id):
         notes=notes,
         today_checkins=today_checkins
     )
+
 
 
 
