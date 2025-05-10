@@ -823,7 +823,7 @@ def event_info(event_id):
     if not event:
         abort(404)
 
-    # ➋ Count distinct checked‑in drivers
+    # ➋ Count distinct checked-in drivers
     cur.execute(
         "SELECT COUNT(DISTINCT driver_id) AS checked_in_count "
         "FROM check_ins "
@@ -833,7 +833,7 @@ def event_info(event_id):
     checked = cur.fetchone()
     checked_in_count = checked['checked_in_count'] or 0
 
-    # ➌ Breakdown by class (checked‑in only)
+    # ➌ Breakdown by class (checked-in only)
     cur.execute("""
         SELECT d.class     AS class,
                COUNT(DISTINCT cr.driver_id) AS count
@@ -846,21 +846,42 @@ def event_info(event_id):
     """, (event_id,))
     class_counts = cur.fetchall()
 
-    # ➍ Calculate average runs by class
+    # ➍ Calculate average runs by class (exclude zeros)
     cur.execute("""
         SELECT d.class            AS class,
-               ROUND(AVG(runs.run_count), 2) AS avg_runs
+               ROUND(AVG(r.run_count), 2) AS avg_runs
         FROM (
             SELECT car_id, COUNT(*) AS run_count
             FROM car_runs
             WHERE event_id = %s
             GROUP BY car_id
-        ) AS runs
-        JOIN drivers AS d ON runs.car_id = d.id
+        ) AS r
+        JOIN cars   AS c ON r.car_id = c.id
+        JOIN drivers AS d ON c.driver_id = d.id
         GROUP BY d.class
         ORDER BY d.class
     """, (event_id,))
     avg_runs_by_class = cur.fetchall()
+
+    # ➎ Find top-performing driver
+    cur.execute("""
+        SELECT
+          d.first_name    AS first_name,
+          d.last_name     AS last_name,
+          d.class         AS class,
+          r.run_count     AS run_count
+        FROM (
+            SELECT car_id, COUNT(*) AS run_count
+            FROM car_runs
+            WHERE event_id = %s
+            GROUP BY car_id
+        ) AS r
+        JOIN cars   AS c ON r.car_id = c.id
+        JOIN drivers AS d ON c.driver_id = d.id
+        ORDER BY r.run_count DESC
+        LIMIT 1
+    """, (event_id,))
+    top_driver = cur.fetchone()
 
     cur.close()
 
@@ -869,7 +890,8 @@ def event_info(event_id):
         event=event,
         checked_in_count=checked_in_count,
         class_counts=class_counts,
-        avg_runs_by_class=avg_runs_by_class
+        avg_runs_by_class=avg_runs_by_class,
+        top_driver=top_driver
     )
 
 
