@@ -334,7 +334,7 @@ def driver_profile(driver_id):
           e.id               AS event_id,
           e.event_name       AS event_name,
           e.event_date       AS event_date,
-          e.event_time       AS event_time,
+          TIME_FORMAT(e.event_time, '%%l:%%i %%p') AS event_time_str,
           COALESCE(ci.checked_in, FALSE) AS checked_in,
           COALESCE(w.signed,     FALSE)  AS waiver_signed
         FROM events e
