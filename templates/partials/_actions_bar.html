@@ -3,7 +3,7 @@
   <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4 flex-wrap">
     <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">Add Driver</a>
     <a href="{{ url_for('check_in') }}" class="btn btn-primary btn-lg">Check In</a>
-    <a href="{{ url_for('laps') }}" class="btn btn-primary btn-lg">Lap Counter</a>
+    <a href="{{ url_for('register_run') }}" class="btn btn-primary btn-lg">Lap Counter</a>
 
     {# hide “Events” link when already on /events #}
     {% if request.path != url_for('events') %}
