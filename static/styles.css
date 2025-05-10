@@ -407,3 +407,43 @@ label {
 .checklist label:hover span.checkbox-custom {
     border-color: #0056b3;
 }
+
+
+/* —— Extra breathing room for Driver Profile —— */
+.profile-card {
+  padding: 2.5rem 3rem !important;
+}
+
+.profile-card .row.align-items-center {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.nav-tabs {
+  margin-bottom: 2rem;
+}
+
+.tab-content {
+  padding: 2rem 0;
+}
+
+.tab-pane {
+  min-height: 200px;
+}
+
+.profile-wrapper .row {
+  row-gap: 2rem;
+  column-gap: 1.5rem;
+}
+
+.list-group-item {
+  padding: 1.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.profile-card p,
+.profile-card small,
+.list-group-item div {
+  line-height: 1.6;
+}
