@@ -447,3 +447,11 @@ label {
 .list-group-item div {
   line-height: 1.6;
 }
+/* —— Override container width on Driver Profile —— */
+.profile-wrapper.container {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
