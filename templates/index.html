@@ -43,6 +43,10 @@
     #driversTable.table-sm td {
       padding: 0.3rem 0.5rem;
     }
+    /* hide until DataTables is initialized */
+    #driversTable {
+      visibility: hidden;
+    }
     /* ---------- Footer ---------- */
     .footer {
       text-align: center;
@@ -146,10 +150,14 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      // smaller drivers table: 5 rows per page
+      // smaller drivers table: 5 rows per page, show pagination from the start
       new DataTable('#driversTable', {
         lengthMenu: [5, 10, 25],
-        pageLength: 5
+        pageLength: 5,
+        initComplete: function () {
+          // reveal the table now that paging is ready
+          document.getElementById('driversTable').style.visibility = 'visible';
+        }
       });
 
       // events table: no paging/search
