@@ -131,7 +131,9 @@
       </div>
 
       <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4 flex-wrap">
-        <a href="{{ url_for('events') }}" class="btn btn-secondary btn-lg">Back to Events</a>
+                    <!-- Action buttons -->
+      {# ——— shared actions bar ——— #}
+      {% include "partials/_actions_bar.html" %}
       </div>
     </div>
   </main>
