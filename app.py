@@ -209,6 +209,59 @@ def get_driver_data(driver_id):
     cur.close()
     return driver_data
 
+@app.route('/drivers_data', methods=['POST'])
+@login_required
+@role_required('admin')
+def drivers_data():
+    # DataTables parameters
+    start  = int(request.form.get('start', 0))
+    length = int(request.form.get('length', 10))
+    search = request.form.get('search[value]', '').strip()
+    order_col_index = request.form.get('order[0][column]', '0')
+    order_dir       = request.form.get('order[0][dir]', 'asc')
+
+    # map column index to actual column name
+    columns = ['class', 'first_name', 'last_name']
+    order_col = columns[int(order_col_index)]
+
+    cur = mysql.connection.cursor(DictCursor)
+
+    # 1) Total record count
+    cur.execute("SELECT COUNT(*) AS cnt FROM drivers")
+    total = cur.fetchone()['cnt']
+
+    # 2) Filtered count + data
+    base_sql = "FROM drivers WHERE 1"
+    params = []
+    if search:
+        base_sql += " AND (first_name LIKE %s OR last_name LIKE %s OR class LIKE %s)"
+        term = f"%{search}%"
+        params += [term, term, term]
+
+    # filtered count
+    cur.execute(f"SELECT COUNT(*) AS cnt {base_sql}", params)
+    filtered = cur.fetchone()['cnt']
+
+    # fetch paged rows
+    data_sql = f"""
+      SELECT id, class, first_name, last_name
+      {base_sql}
+      ORDER BY {order_col} {order_dir}
+      LIMIT %s OFFSET %s
+    """
+    params += [length, start]
+    cur.execute(data_sql, params)
+    rows = cur.fetchall()
+    cur.close()
+
+    return jsonify({
+      "draw": int(request.form.get('draw', 1)),
+      "recordsTotal": total,
+      "recordsFiltered": filtered,
+      "data": rows
+    })
+
+
 def get_car_data(car_id):
     cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT * FROM cars WHERE id = %s", (car_id,))
