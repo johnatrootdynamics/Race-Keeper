@@ -1,20 +1,20 @@
 <!-- Action buttons -->
 {% if current_user.role == 'admin' %}
   <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4 flex-wrap">
-    <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">Add Driver</a>
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Add Driver</a>
     <a href="{{ url_for('check_in') }}" class="btn btn-primary btn-lg">Check In</a>
     <a href="{{ url_for('register_run') }}" class="btn btn-primary btn-lg">Lap Counter</a>
 
     {# hide “Events” link when already on /events #}
     {% if request.path != url_for('events') %}
-      <a href="{{ url_for('events') }}" class="btn btn-secondary btn-lg">Events</a>
+      <a href="{{ url_for('events') }}" class="btn btn-primary btn-lg">Events</a>
     {% endif %}
 
-    <a href="{{ url_for('car_inspection') }}" class="btn btn-warning btn-lg text-white">Car Inspection</a>
+    <a href="{{ url_for('car_inspection') }}" class="btn btn-primary btn-lg">Car Inspection</a>
 
     {# show “Create Event” only when on /events #}
     {% if request.path == url_for('events') %}
-      <a href="{{ url_for('create_event') }}" class="btn btn-outline-success btn-lg">
+      <a href="{{ url_for('create_event') }}" class="btn btn-primary btn-lg">
         Create Event
       </a>
     {% endif %}
