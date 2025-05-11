@@ -261,15 +261,12 @@
 
       <!-- —— Action Buttons —— -->
       <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4 flex-wrap">
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary"
-          >Back to Home</a
-        >
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
         {% if current_user.role == 'admin' %}
           <form
             method="POST"
             action="{{ url_for('delete_driver', driver_id=driver.id) }}"
-            onsubmit="return confirm('Delete this driver?');"
-          >
+            onsubmit="return confirm('Delete this driver?');">
             <button type="submit" class="btn btn-danger">Delete Driver</button>
           </form>
         {% endif %}
