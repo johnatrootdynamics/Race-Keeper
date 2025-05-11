@@ -263,7 +263,8 @@ def index():
         cur.execute("SELECT * FROM drivers")
         drivers = cur.fetchall()
         cur.close()
-        return render_template('index.html', drivers=drivers)
+        events = get_events_for_today()
+        return render_template('index.html', drivers=drivers,events=events)
 
     # Any other role is forbidden
     abort(403)
