@@ -54,7 +54,11 @@
         <button type="submit" class="btn btn-success w-100">Submit</button>
       </form>
 
-      <div class="d-grid gap-2 mt-4"><a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a></div>
+      <div class="d-grid gap-2 mt-4">
+                    <!-- Action buttons -->
+      {# ——— shared actions bar ——— #}
+      {% include "partials/_actions_bar.html" %}
+      </div>
     </div>
   </main>
 
