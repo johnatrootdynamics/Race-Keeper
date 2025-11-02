@@ -1,5 +1,3 @@
-# app.pyd
-
 from flask import *
 from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
@@ -7,7 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from MySQLdb.cursors import DictCursor
-import qrcode 
+import qrcode
 from minio import Minio
 from datetime import datetime
 from functools import wraps
@@ -37,14 +35,9 @@ SECRET_KEY = "GSypLUEoucbfk1rVm7EmKSu5ApdEwkqiFHq8VzV4"
 BUCKET_NAME = "oswimages"
 MINIO_API_HOST = "https://s3-api.root-dynamics.com"
 
-
 app.config['BOLD_API_BASE']    = "https://api.boldsign.com/v1"
 app.config['BOLD_API_KEY']     = "MzdkZDFmN2YtOWQwZS00YjM4LWIyYTUtMmFkNDdiMjMxZGMw"
 app.config['BOLD_TEMPLATE_ID'] = "e5c8f024-64df-4bdc-9142-3a04c01a154a"
-
-
-
-
 
 mysql = MySQL(app)
 login_manager = LoginManager()
@@ -52,7 +45,6 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 roles = ["user","admin"]
-
 
 @app.template_global()
 def get_all_drivers():
@@ -62,19 +54,19 @@ def get_all_drivers():
     cur.close()
     return ds
 
-#To pull profile picture for navbar
+# To pull profile picture for navbar
 @app.context_processor
 def inject_profile_pic():
     fallback = url_for("static", filename="img/default_profile.png")
     if current_user.is_authenticated:
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(DictCursor)  # ensure dict rows
         cur.execute("SELECT picture_path FROM drivers WHERE id = %s", (current_user.id,))
         row = cur.fetchone()
         cur.close()
-        if row and row["picture_path"]:
+        if row and row.get("picture_path"):
             return dict(profile_pic_url=row["picture_path"])
     return dict(profile_pic_url=fallback)
-    
+
 class User(UserMixin):
     def __init__(self, id, username, role):
         self.id = id
@@ -93,7 +85,7 @@ def role_required(*roles):
 
 @login_manager.user_loader
 def load_user(user_id):
-    cursor = mysql.connection.cursor()
+    cursor = mysql.connection.cursor(DictCursor)
     cursor.execute('SELECT * FROM drivers WHERE id = %s', (user_id,))
     user = cursor.fetchone()
     cursor.close()
@@ -125,7 +117,7 @@ def register():
         phone_number  = request.form['phone_number']
         dclass        = request.form['dclass']
         username      = request.form['username']
-        email         = request.form['email']          # ← NEW
+        email         = request.form['email']
         password      = request.form['password']
         hashed_pwd    = generate_password_hash(password, method='scrypt')
 
@@ -158,7 +150,7 @@ def register():
         """, (
             first_name, last_name, city, state, zipcode,
             date_of_birth, address, phone_number, picture_path,
-            dclass, username, email, hashed_pwd, role      # ← email inserted here
+            dclass, username, email, hashed_pwd, role
         ))
         mysql.connection.commit()
         cur.close()
@@ -170,7 +162,6 @@ def register():
         'register.html',
         show_role_selection=show_role_selection
     )
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -201,66 +192,12 @@ def login():
 
     return render_template('login.html')
 
-
 def get_driver_data(driver_id):
     cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT * FROM drivers WHERE id = %s", (driver_id,))
     driver_data = cur.fetchone()
     cur.close()
     return driver_data
-
-@app.route('/drivers_data', methods=['POST'])
-@login_required
-@role_required('admin')
-def drivers_data():
-    # DataTables parameters
-    start  = int(request.form.get('start', 0))
-    length = int(request.form.get('length', 10))
-    search = request.form.get('search[value]', '').strip()
-    order_col_index = request.form.get('order[0][column]', '0')
-    order_dir       = request.form.get('order[0][dir]', 'asc')
-
-    # map column index to actual column name
-    columns = ['class', 'first_name', 'last_name']
-    order_col = columns[int(order_col_index)]
-
-    cur = mysql.connection.cursor(DictCursor)
-
-    # 1) Total record count
-    cur.execute("SELECT COUNT(*) AS cnt FROM drivers")
-    total = cur.fetchone()['cnt']
-
-    # 2) Filtered count + data
-    base_sql = "FROM drivers WHERE 1"
-    params = []
-    if search:
-        base_sql += " AND (first_name LIKE %s OR last_name LIKE %s OR class LIKE %s)"
-        term = f"%{search}%"
-        params += [term, term, term]
-
-    # filtered count
-    cur.execute(f"SELECT COUNT(*) AS cnt {base_sql}", params)
-    filtered = cur.fetchone()['cnt']
-
-    # fetch paged rows
-    data_sql = f"""
-      SELECT id, class, first_name, last_name
-      {base_sql}
-      ORDER BY {order_col} {order_dir}
-      LIMIT %s OFFSET %s
-    """
-    params += [length, start]
-    cur.execute(data_sql, params)
-    rows = cur.fetchall()
-    cur.close()
-
-    return jsonify({
-      "draw": int(request.form.get('draw', 1)),
-      "recordsTotal": total,
-      "recordsFiltered": filtered,
-      "data": rows
-    })
-
 
 def get_car_data(car_id):
     cur = mysql.connection.cursor(DictCursor)
@@ -282,16 +219,13 @@ def generate_qr_code(data, filename):
     img = qr.make_image(fill_color="black", back_color="white")
     img.save(filename)
 
-
-
 def get_events_for_today():
     today = datetime.now().date()
-    cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(DictCursor)  # ensure dict rows for templates
     cur.execute("SELECT * FROM events WHERE DATE(event_date) = %s", (today,))
     events = cur.fetchall()
     cur.close()
     return events
-
 
 def get_car_data_by_driver(driver_id):
     cur = mysql.connection.cursor(DictCursor)
@@ -312,12 +246,11 @@ def index():
 
     # Admins see the full driver dashboard
     if current_user.role == 'admin':
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(DictCursor)
         cur.execute("SELECT * FROM drivers")
         drivers = cur.fetchall()
         cur.close()
-        events = get_events_for_today()
-        return render_template('index.html', drivers=drivers,events=events)
+        return render_template('index.html', drivers=drivers)
 
     # Any other role is forbidden
     abort(403)
@@ -338,7 +271,7 @@ def driver_qr_code(driver_id):
 @app.route('/car_qr/<int:car_id>')
 def car_qr_code(car_id):
     if current_user.id != current_user.id and current_user.role != 'admin':
-        abort(403)  
+        abort(403)
     # Assuming you have a function to get the driver's data
     car_data = get_car_data(car_id)
 
@@ -419,10 +352,6 @@ def driver_profile(driver_id):
         today_checkins=today_checkins
     )
 
-
-
-
-
 @app.route('/delete_driver/<int:driver_id>', methods=['POST'])
 @login_required
 def delete_driver(driver_id):
@@ -448,7 +377,6 @@ def delete_driver(driver_id):
     else:
         return "Driver not found"
 
-
 @app.route('/delete_event/<int:event_id>', methods=['POST'])
 @login_required
 @role_required("admin")
@@ -471,10 +399,6 @@ def delete_event(event_id):
     else:
         return "Event not found"
 
-
-
-
-
 @app.route('/car/<int:car_id>')
 @login_required
 def car_info(car_id):
@@ -491,11 +415,9 @@ def car_info(car_id):
     else:
         return "Car not found"
 
-
 @app.route('/<filename>', methods=['POST'])
 def get_picture():
     return 'upload/'
-
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -513,7 +435,6 @@ def upload_file():
         return 'File uploaded successfully'
 
     return 'Invalid file format'
-
 
 @app.route('/driver/<int:driver_id>/upload_picture', methods=['POST'])
 @login_required
@@ -555,8 +476,6 @@ def upload_driver_picture(driver_id):
     flash('Profile picture updated!', 'success')
     return redirect(url_for('driver_profile', driver_id=driver_id))
 
-
-
 @app.route('/add_car/<int:driver_id>', methods=['GET', 'POST'])
 @login_required
 def add_car(driver_id):
@@ -568,12 +487,9 @@ def add_car(driver_id):
         make = request.form['make']
         model = request.form['model']
         year = request.form['year']
-        # Add other form fields
         # Handle file upload (picture)
         if "picture" in request.files:
             file = request.files["picture"]
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
             if file.filename != "":
                 picture = request.files['picture']
                 if picture and allowed_file(file.filename):
@@ -587,7 +503,6 @@ def add_car(driver_id):
             else:
                 picture_path = None
 
-        
         # Insert data into database
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO cars (make, model, year, picture_path, driver_id) VALUES (%s, %s, %s, %s, %s)", (make, model, year, picture_path, driver_id))
@@ -598,19 +513,16 @@ def add_car(driver_id):
 
     return render_template('add_car.html', driver_id=driver_id)
 
-
 @app.route('/delete_car/<int:car_id>/<int:driver_id>', methods=['POST', 'GET'])
 @login_required
 def delete_car(car_id,driver_id):
     if current_user.id != current_user.id and current_user.role != 'admin':
         abort(403)
     cur = mysql.connection.cursor()
-    driverid = driver_id
     cur.execute("DELETE FROM cars WHERE id = %s", (car_id,))
     mysql.connection.commit()
     cur.close()
     return redirect(url_for('driver_profile',driver_id=driver_id))
-    #return redirect(url_for('index'))
 
 @app.route('/create_event', methods=['GET', 'POST'])
 @login_required
@@ -634,31 +546,22 @@ def create_event():
 
     return render_template('create_event.html')
 
-
-
-
 @app.route('/events')
 @login_required
 def events():
     if current_user.role != 'admin':
         abort(403)
-    today = datetime.now().date()
-    cur = mysql.connection.cursor()
-    #cur.execute("SELECT * FROM events WHERE event_date = %s", (today,))
+    cur = mysql.connection.cursor(DictCursor)
     cur.execute("SELECT * FROM events")
     events = cur.fetchall()
     cur.close()
     return render_template('events.html', events=events)
-
-
 
 @app.route('/event_check_ins', methods=['GET', 'POST'])
 @login_required
 def event_check_ins():
     passed_event_id = request.args.get('event_id', None)
 
-
-    
     if current_user.role != 'admin':
         abort(403)
     # Fetch all events for the dropdown
@@ -668,9 +571,7 @@ def event_check_ins():
     cur.close()
 
     selected_event_id = None
-    messages = []
     if passed_event_id:
-        event_id = passed_event_id
         cur = mysql.connection.cursor()
         cur.execute("""
             SELECT DISTINCT
@@ -685,12 +586,8 @@ def event_check_ins():
         """, (passed_event_id,))
         check_ins = cur.fetchall()
         cur.close()
-
-        for check_in in check_ins:
-            hello = "hello"
         return render_template('event_check_ins.html', check_ins=check_ins, events=events, passed_event_id=passed_event_id)
     
-
     if request.method == 'POST':
         selected_event_id = int(request.form.get('event_id'))
 
@@ -710,23 +607,16 @@ def event_check_ins():
         """, (selected_event_id,))
         check_ins = cur.fetchall()
         cur.close()
-
-        for check_in in check_ins:
-            hello = "hello"
         return render_template('event_check_ins.html', check_ins=check_ins, events=events, selected_event_id=selected_event_id)
 
     return render_template('event_check_ins.html', events=events, selected_event_id=selected_event_id)
-
-
-
-
 
 @app.route('/car_inspection', methods=['GET', 'POST'])
 @login_required
 def car_inspection():
     if current_user.role != 'admin':
         abort(403)
-    messages = []  # Create an empty list to store messages
+    messages = []
 
     if request.method == 'POST':
         car_id = request.form.get('car_id')
@@ -738,7 +628,7 @@ def car_inspection():
         ins_bat = request.form.get('ins_bat')
 
         # Validate if the car exists
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(DictCursor)
         cur.execute("SELECT driver_id FROM cars WHERE id = %s", (car_id,))
         car_data = cur.fetchone()
         cur.close()
@@ -746,22 +636,20 @@ def car_inspection():
         if car_data:
             driver_id = car_data['driver_id']
             # Get driver_class from drivers table
-            cur = mysql.connection.cursor()
+            cur = mysql.connection.cursor(DictCursor)
             cur.execute("SELECT class FROM drivers WHERE id = %s", (driver_id,))
             driver_class = cur.fetchone()
             cur.close()
 
             # Check if the driver is checked in for the selected event
-            cur = mysql.connection.cursor()
+            cur = mysql.connection.cursor(DictCursor)
             cur.execute("SELECT checked_in FROM check_ins WHERE driver_id = %s AND event_id = %s", (driver_id, event_id,))
             check_in_data = cur.fetchone()
             cur.close()
 
             if check_in_data and check_in_data['checked_in']:
-                # Driver is checked in, proceed with inspection
-
                 # Check if the car has already passed inspection for the specified event
-                cur = mysql.connection.cursor()
+                cur = mysql.connection.cursor(DictCursor)
                 cur.execute("SELECT inspection_status FROM car_inspections WHERE car_id = %s AND event_id = %s", (car_id, event_id,))
                 inspection_data = cur.fetchone()
                 cur.close()
@@ -769,7 +657,6 @@ def car_inspection():
                 if not inspection_data:
                     # Check if all checkboxes are checked
                     if ins_fluid and ins_helmet and ins_fireext and ins_cage and ins_bat:
-                        # Car has not been inspected for this event and all checkboxes are checked, proceed with inspection
                         cur = mysql.connection.cursor()
                         cur.execute("INSERT INTO car_inspections (car_id, event_id, driver_id, driver_class, inspection_status, inspection_datetime) VALUES (%s, %s, %s, %s, 'Passed', NOW())",
                                     (car_id, event_id, driver_id, driver_class['class']))
@@ -791,22 +678,6 @@ def car_inspection():
 
     return render_template('car_inspection.html', events=events, messages=messages)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def upload_object(filename, data, length, bucket):
     client = Minio('s3-api.root-dynamics.com', ACCESS_KEY, SECRET_KEY)
 
@@ -820,11 +691,8 @@ def upload_object(filename, data, length, bucket):
     client.put_object(bucket, filename, data, length)
     print(f"{filename} is successfully uploaded to bucket {bucket}.")
 
-
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 
 @app.route('/register_run', methods=['GET', 'POST'])
 def register_run():
@@ -856,8 +724,6 @@ def register_run():
     events = cursor.fetchall()
     cursor.close()
     return render_template('laps.html', events=events)
-
-
 
 @app.route('/event_info/<int:event_id>')
 @login_required
@@ -948,10 +814,6 @@ def event_info(event_id):
         top_driver=top_driver
     )
 
-
-
-
-
 def create_boldsign_request(driver_id, event_id):
     """
     Sends your waiver template to BoldSign via the /template/send endpoint.
@@ -985,7 +847,6 @@ def create_boldsign_request(driver_id, event_id):
     resp.raise_for_status()
     return resp.json()["documentId"]
 
-
 def get_boldsign_signing_url(document_id, signer_email, driver_id):
     api_key = app.config.get('BOLD_API_KEY')
     base    = app.config.get('BOLD_API_BASE')
@@ -1014,7 +875,6 @@ def get_boldsign_signing_url(document_id, signer_email, driver_id):
     )
     resp.raise_for_status()
     return resp.json()["signLink"]
-
 
 @app.route('/driver/<int:driver_id>/waiver/<int:event_id>')
 @login_required
@@ -1050,16 +910,13 @@ def start_waiver(driver_id, event_id):
     # embed it (or redirect) — here we redirect into an iframe page
     return render_template('waiver_embed.html', signing_url=signing_url)
 
-
-
 @app.route('/boldsign/webhook', methods=['POST'])
 def boldsign_webhook():
     # 1) Capture the incoming JSON
     payload = request.get_json(force=True, silent=True) or {}
     app.logger.info("🔔 BoldSign webhook payload: %s", payload)
 
-    # 2) Pull out the documentId & status from whatever section BoldSign used
-    #    (in your payload it lives under payload['data']['documentId'])
+    # 2) Pull out the documentId & status
     data      = payload.get('data', {}) or {}
     doc_block = payload.get('document', {}) or {}
     document_id = (
@@ -1081,7 +938,6 @@ def boldsign_webhook():
 
     app.logger.info("ℹ️  Found document_id=%s status=%s", document_id, status)
 
-    # 3) Only when status shows Completed (or whatever your workflow calls it)
     if status in ("completed", "signing_complete", "signed"):
         cur = mysql.connection.cursor()
         rows = cur.execute("""
@@ -1101,7 +957,6 @@ def boldsign_webhook():
         app.logger.warning("⚠️ Ignoring webhook for document_id=%s with status=%s", document_id, status)
 
     return jsonify({"received": True}), 200
-
 
 @app.route('/final_check_in', methods=['POST'])
 @login_required
@@ -1172,6 +1027,52 @@ def final_check_in():
     flash('Driver checked in successfully!', 'success')
     return redirect(url_for('check_in'))
 
+# ─────────────────────────────────────────────────────────────
+# NEW: Lightweight driver search API (name/email → list of matches)
+# ─────────────────────────────────────────────────────────────
+@app.route('/api/drivers/search')
+@login_required
+@role_required("admin")
+def api_search_drivers():
+    """
+    AJAX endpoint to search drivers by name (first/last or both) or email fragment.
+    Returns: [{id, full_name, email, label}] limited to 10.
+    """
+    q_raw = request.args.get('q', '') or ''
+    q = q_raw.strip()
+    try:
+        limit = min(int(request.args.get('limit', 10)), 25)
+    except ValueError:
+        limit = 10
+
+    if len(q) < 2:
+        return jsonify([])
+
+    like = f"%{q}%"
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute("""
+        SELECT id, first_name, last_name, email
+          FROM drivers
+         WHERE first_name LIKE %s
+            OR last_name  LIKE %s
+            OR CONCAT(first_name, ' ', last_name) LIKE %s
+            OR email LIKE %s
+         ORDER BY last_name, first_name
+         LIMIT %s
+    """, (like, like, like, like, limit))
+    rows = cur.fetchall()
+    cur.close()
+
+    results = []
+    for r in rows:
+        full_name = f"{r['first_name']} {r['last_name']}".strip()
+        results.append({
+            "id": r["id"],
+            "full_name": full_name,
+            "email": r["email"],
+            "label": f"{full_name} — {r['email']}"
+        })
+    return jsonify(results)
 
 @app.route('/check_in', methods=['GET', 'POST'])
 @login_required
@@ -1212,9 +1113,6 @@ def check_in():
         cars=cars
     )
 
-
-    
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)
-    
     #app.run(debug=True)

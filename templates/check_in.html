@@ -33,6 +33,13 @@
       max-width: 500px;
       margin: 1rem auto 0;
     }
+    /* ---------- Typeahead dropdown ---------- */
+    #driver_results {
+      border-radius: 0.5rem;
+    }
+    #driver_results .list-group-item {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -69,11 +76,17 @@
                        value="{{ event.id }}"
                        autocomplete="off"
                        required
-                       {% if event.id|string == driver_id|string %}checked{% endif %}>
+                       {% if selected_event_id and (event.id|string == selected_event_id|string) %}checked{% endif %}>
                 <label class="btn btn-outline-primary w-100 p-3 text-start"
                        for="event_{{ event.id }}">
                   <div class="fw-bold">{{ event.event_name }}</div>
-                  <small class="text-muted">{{ event.event_date.strftime('%Y-%m-%d') }}</small>
+                  <small class="text-muted">
+                    {% if event.event_date.__class__.__name__ == 'date' %}
+                      {{ event.event_date.strftime('%Y-%m-%d') }}
+                    {% else %}
+                      {{ event.event_date }}
+                    {% endif %}
+                  </small>
                 </label>
               </div>
             {% endfor %}
@@ -82,6 +95,23 @@
         </div>
 
         <!-- 2) Driver lookup -->
+        <div class="mb-3">
+          <label class="form-label">Search Driver by Name or Email</label>
+          <div class="position-relative">
+            <input type="text"
+                   class="form-control form-control-lg"
+                   placeholder="Start typing a name or email (e.g., 'john sm', 'smith', 'jane@')"
+                   id="driver_search" autocomplete="off">
+            <!-- Results dropdown -->
+            <div id="driver_results"
+                 class="list-group position-absolute w-100 shadow-sm"
+                 style="z-index: 1050; max-height: 280px; overflow-y: auto; display: none;">
+              <!-- JS will populate clickable <button> items here -->
+            </div>
+          </div>
+          <div class="form-text">Selecting a result will fill the Driver ID field below.</div>
+        </div>
+
         <div class="input-group mb-3">
           <input type="text"
                  class="form-control form-control-lg"
@@ -97,13 +127,13 @@
         <button type="submit" class="btn btn-primary w-100">Look Up</button>
       </form>
 
-      {% if driver_id %}
+      {% if driver_id and driver %}
         <hr class="my-4" />
         <h3 class="text-center mb-3">{{ driver.first_name }} {{ driver.last_name }}</h3>
         <form action="{{ url_for('final_check_in') }}" method="post"
               class="row g-3 needs-validation" novalidate>
           <input type="hidden" name="driver_id" value="{{ driver_id }}" />
-          <input type="hidden" name="event_id" value="{{ selected_event_id or driver_id }}" />
+          <input type="hidden" name="event_id" value="{{ selected_event_id }}" />
 
           <div class="col-md-6">
             <label for="car_id" class="form-label">Select a Car</label>
@@ -121,9 +151,7 @@
       {% endif %}
 
       <div class="d-grid gap-2 mt-4">
-                    <!-- Action buttons -->
-      {# ——— shared actions bar ——— #}
-      {% include "partials/_actions_bar.html" %}
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
       </div>
     </div>
   </main>
@@ -139,8 +167,11 @@
       const scanBtn = document.getElementById('scanQRButton');
       const qrReaderElem = document.getElementById('qr-reader');
       const driverField = document.getElementById('driver_id');
+      const searchField = document.getElementById('driver_search');
+      const resultsBox = document.getElementById('driver_results');
       let qrScanner;
 
+      // ---- QR scanner: keep existing flow (Driver-ID only) ----
       scanBtn.addEventListener('click', () => {
         if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader');
         qrReaderElem.classList.remove('d-none');
@@ -157,7 +188,73 @@
         ).catch(console.error);
       });
 
-      // Bootstrap validation
+      // ---- Debounce helper ----
+      const debounce = (fn, ms=250) => {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn.apply(null, args), ms);
+        };
+      };
+
+      // ---- Render search results ----
+      function renderResults(items) {
+        resultsBox.innerHTML = '';
+        if (!items || items.length === 0) {
+          resultsBox.style.display = 'none';
+          return;
+        }
+        items.forEach(item => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'list-group-item list-group-item-action';
+          btn.textContent = item.label; // "Full Name — email"
+          btn.addEventListener('click', () => {
+            // Fill the Driver ID field (this drives the rest of your flow)
+            driverField.value = item.id;
+            // Show chosen name in the search box for clarity
+            searchField.value = item.full_name + ' — ' + item.email;
+            // Hide results
+            resultsBox.style.display = 'none';
+            resultsBox.innerHTML = '';
+            driverField.focus();
+          });
+          resultsBox.appendChild(btn);
+        });
+        resultsBox.style.display = 'block';
+      }
+
+      // ---- Query backend ----
+      const performSearch = debounce(async () => {
+        const q = (searchField.value || '').trim();
+        if (q.length < 2) {
+          renderResults([]);
+          return;
+        }
+        try {
+          const resp = await fetch(`/api/drivers/search?q=${encodeURIComponent(q)}&limit=10`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (!resp.ok) throw new Error('Search failed');
+          const data = await resp.json();
+          renderResults(data);
+        } catch (e) {
+          console.error(e);
+          renderResults([]);
+        }
+      }, 250);
+
+      searchField.addEventListener('input', performSearch);
+      searchField.addEventListener('focus', () => {
+        if (resultsBox.children.length > 0) resultsBox.style.display = 'block';
+      });
+      document.addEventListener('click', (e) => {
+        if (!resultsBox.contains(e.target) && e.target !== searchField) {
+          resultsBox.style.display = 'none';
+        }
+      });
+
+      // ---- Bootstrap validation ----
       (() => {
         'use strict';
         const forms = document.querySelectorAll('.needs-validation');
