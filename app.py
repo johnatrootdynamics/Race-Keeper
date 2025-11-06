@@ -1,3 +1,4 @@
+
 from flask import *
 from flask_mysqldb import MySQL
 from werkzeug.utils import secure_filename
@@ -97,38 +98,6 @@ def load_user(user_id):
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-@app.route('/drivers_data')
-@login_required
-@role_required("admin")
-def drivers_data():
-    q = (request.args.get('q') or "").strip()
-    cur = mysql.connection.cursor(DictCursor)
-    if q:
-        like = f"%{q}%"
-        cur.execute("""
-            SELECT id, first_name, last_name, email, class, picture_path
-              FROM drivers
-             WHERE first_name LIKE %s
-                OR last_name  LIKE %s
-                OR CONCAT(first_name, ' ', last_name) LIKE %s
-                OR email LIKE %s
-             ORDER BY last_name, first_name
-             LIMIT 100
-        """, (like, like, like, like))
-    else:
-        cur.execute("""
-            SELECT id, first_name, last_name, email, class, picture_path
-              FROM drivers
-             ORDER BY last_name, first_name
-             LIMIT 500
-        """)
-    rows = cur.fetchall()
-    cur.close()
-    # Either:
-    # return jsonify(rows)            # if your DataTables uses dataSrc: ''
-    return jsonify({"data": rows})    # if your DataTables uses default dataSrc
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
