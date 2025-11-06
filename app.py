@@ -102,13 +102,8 @@ def logout():
 @login_required
 @role_required("admin")
 def drivers_data():
-    """
-    JSON feed used by index.html. Returns a list of drivers.
-    Supports optional ?q= search filter (name/email).
-    """
     q = (request.args.get('q') or "").strip()
     cur = mysql.connection.cursor(DictCursor)
-
     if q:
         like = f"%{q}%"
         cur.execute("""
@@ -128,10 +123,11 @@ def drivers_data():
              ORDER BY last_name, first_name
              LIMIT 500
         """)
-
     rows = cur.fetchall()
     cur.close()
-    return jsonify(rows)
+    # Either:
+    # return jsonify(rows)            # if your DataTables uses dataSrc: ''
+    return jsonify({"data": rows})    # if your DataTables uses default dataSrc
 
 
 @app.route('/register', methods=['GET', 'POST'])
