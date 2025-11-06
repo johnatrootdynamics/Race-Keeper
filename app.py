@@ -98,6 +98,42 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+@app.route('/drivers_data')
+@login_required
+@role_required("admin")
+def drivers_data():
+    """
+    JSON feed used by index.html. Returns a list of drivers.
+    Supports optional ?q= search filter (name/email).
+    """
+    q = (request.args.get('q') or "").strip()
+    cur = mysql.connection.cursor(DictCursor)
+
+    if q:
+        like = f"%{q}%"
+        cur.execute("""
+            SELECT id, first_name, last_name, email, class, picture_path
+              FROM drivers
+             WHERE first_name LIKE %s
+                OR last_name  LIKE %s
+                OR CONCAT(first_name, ' ', last_name) LIKE %s
+                OR email LIKE %s
+             ORDER BY last_name, first_name
+             LIMIT 100
+        """, (like, like, like, like))
+    else:
+        cur.execute("""
+            SELECT id, first_name, last_name, email, class, picture_path
+              FROM drivers
+             ORDER BY last_name, first_name
+             LIMIT 500
+        """)
+
+    rows = cur.fetchall()
+    cur.close()
+    return jsonify(rows)
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     # only admins get to pick role; everyone else is treated as anonymous self-register
