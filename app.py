@@ -1212,7 +1212,72 @@ def check_in():
         cars=cars
     )
 
+@app.route('/api/drivers/search')
+@login_required
+@role_required("admin")
+def api_search_drivers():
+    """
+    AJAX endpoint to search drivers by name (first/last or both) or email fragment.
+    Returns: [{id, full_name, email, label}] limited to 10.
+    """
+    q = (request.args.get('q') or "").strip()
+    try:
+        limit = min(int(request.args.get('limit', 10)), 25)
+    except ValueError:
+        limit = 10
 
+    if len(q) < 2:
+        # Require at least 2 chars to reduce load
+        return jsonify([])
+
+    # ---- Replace this with your own MySQL helper if different ----
+    # Example raw MySQL client usage:
+    # with mysql_connection() as conn:
+    #     cur = conn.cursor(dictionary=True)
+    #     cur.execute(sql, params)
+    #     rows = cur.fetchall()
+
+    rows = search_drivers_by_name(q, limit)  # defined below
+    results = []
+    for r in rows:
+        full_name = f"{r['first_name']} {r['last_name']}".strip()
+        results.append({
+            "id": r["id"],
+            "full_name": full_name,
+            "email": r["email"],
+            "label": f"{full_name} — {r['email']}"
+        })
+    return jsonify(results)
+
+
+def search_drivers_by_name(q: str, limit: int = 10):
+    """
+    MySQL search helper: matches first_name, last_name, 'first last', or email.
+    Uses parameterized LIKE to avoid injection; relies on index on last_name/first_name/email.
+    """
+    like = f"%{q}%"
+    sql = """
+        SELECT id, first_name, last_name, email
+        FROM drivers
+        WHERE
+            first_name LIKE %s
+            OR last_name LIKE %s
+            OR CONCAT(first_name, ' ', last_name) LIKE %s
+            OR email LIKE %s
+        ORDER BY last_name, first_name
+        LIMIT %s
+    """
+    params = (like, like, like, like, int(limit))
+
+    # *** Replace with your own connection helper ***
+    conn = get_mysql_connection()  # your existing MySQL client helper
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute(sql, params)
+        return cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
     
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=80)
