@@ -99,6 +99,16 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+@app.route('/drivers_data', methods=['GET', 'POST'])
+def get_drivers():
+    cur = mysql.connection.cursor(DictCursor)
+    cur.execute("SELECT id, first_name, last_name FROM drivers")
+    ds = cur.fetchall()
+    cur.close()
+    return ds
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     # only admins get to pick role; everyone else is treated as anonymous self-register
